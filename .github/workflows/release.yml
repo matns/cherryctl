@@ -68,7 +68,7 @@ jobs:
         sha256sum -- * > SHA256SUMS
     - name: "Archive assets"
       env:
-        ARCHIVE_NAME: "$BINARY_NAME-${{ github.ref_name }}-$GOOS-$GOARCH"
+        ARCHIVE_NAME: "${{ env.BINARY_NAME}}-${{ github.ref_name }}-${{ env.GOOS}}-${{ env.GOARCH}}"
       shell: "bash"
       run: |
         mkdir -p "$ARCHIVE_DIR"
@@ -81,7 +81,7 @@ jobs:
     - name: "Upload workflow artifacts"
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
-        name: "release-${{ env.BINARY_NAME }}-${{ matrix.goos }}-${{ matrix.goarch }}"
+        name: "release-${{ env.BINARY_NAME }}-${{ matrix.GOOS }}-${{ matrix.GOARCH }}"
         path: "${{ env.ARCHIVE_DIR }}/*"
         if-no-files-found: error
         compression-level: 0
@@ -97,6 +97,7 @@ jobs:
       attestations: write
       artifact-metadata: write
     env:
+      GITHUB_REF_NAME: ${{ github.ref_name }}
       SOURCE_NAME: "${{ github.event.repository.name }}"
       CHECKSUMS_FILE_PATH: ${{ github.event.repository.name }}-${{ github.ref_name }}.sha256sum # use repo name as binary name
       DIST_DIR: ${{ github.workspace }}/dist
