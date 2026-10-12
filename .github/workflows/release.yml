@@ -124,8 +124,8 @@ jobs:
         env:
           SOURCE_SBOM_NAME: "$SOURCE_NAME-$GITHUB_REF_NAME-source"
         run: |
-          syft dir:${{ github.workspace }} --source-name "$SOURCE_NAME" --source-version "$GITHUB_REF_NAME" -o spdx-json=$DIST_DIR/$SOURCE_SBOM_NAME.spdx.json
-          syft dir:${{ github.workspace }} --source-name "$SOURCE_NAME" --source-version "$GITHUB_REF_NAME" -o cyclonedx-json=$DIST_DIR/$SOURCE_SBOM_NAME.cdx.json
+          $(go env GOPATH)/bin/syft dir:${{ github.workspace }} --source-name "$SOURCE_NAME" --source-version "$GITHUB_REF_NAME" -o spdx-json=$DIST_DIR/$SOURCE_SBOM_NAME.spdx.json
+          $(go env GOPATH)/bin/syft dir:${{ github.workspace }} --source-name "$SOURCE_NAME" --source-version "$GITHUB_REF_NAME" -o cyclonedx-json=$DIST_DIR/$SOURCE_SBOM_NAME.cdx.json
 
       - name: "Generate checksums"
         shell: "bash"
