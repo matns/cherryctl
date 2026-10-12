@@ -134,7 +134,7 @@ jobs:
 
       - name: "Generate checksums of the release"
         shell: "bash"
-        working-directory: "{{ env.DIST_DIR }}"
+        working-directory: "${{ env.DIST_DIR }}"
         run: |
           sha256sum -- * > $CHECKSUMS_FILE_PATH
 
