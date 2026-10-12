@@ -140,10 +140,10 @@ jobs:
           subject-path: "$DIST_DIR"
           show-summary: true
 
-      - name: "Sign checksums with sigstore"
-        shell: "bash"
-        run: |
-          cosign sign-blob dist/$CHECKSUMS_FILE_PATH --bundle "$DIST_DIR/$CHECKSUMS_FILE_PATH.sigstore.json --yes
+      # - name: "Sign checksums with sigstore"
+      #   shell: "bash"
+      #   run: |
+      #     cosign sign-blob dist/$CHECKSUMS_FILE_PATH --bundle "$DIST_DIR/$CHECKSUMS_FILE_PATH.sigstore.json --yes
       - name: "Create release"
         shell: "bash"
         run: |
