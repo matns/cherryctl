@@ -151,6 +151,8 @@ jobs:
       #     cosign sign-blob dist/$CHECKSUMS_FILE_PATH --bundle "$DIST_DIR/$CHECKSUMS_FILE_PATH.sigstore.json --yes
       - name: "Create release"
         shell: "bash"
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" $DIST_DIR/* \
             --repo "${GITHUB_REPOSITORY}" \
