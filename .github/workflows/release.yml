@@ -24,10 +24,15 @@ jobs:
       ARCHIVE_DIR: ${{ github.workspace }}/dist/archives
     runs-on: ${{ matrix.runner }}
     steps:
+    - name: Checkout
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+      with:
+        fetch-depth: 0
+
     - name: Set up Go
       uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
       with:
-        go-version-file: 'go.mod'
+        go-version-file: '${{ github.workspace }}/go.mod'
 
     - name: Set up google/go-licenses # v2.0.1
       shell: "bash"
@@ -38,11 +43,6 @@ jobs:
       shell: "bash"
       run: |
         go install github.com/anchore/syft/cmd/syft@b254e6d92f28c3868a755f62fb3ca8f26e9fee76
-
-    - name: Checkout
-      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-      with:
-        fetch-depth: 0
 
     - name: Set up temp dir and dist dir
       shell: bash
