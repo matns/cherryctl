@@ -40,11 +40,6 @@ jobs:
       run: |
         go install github.com/google/go-licenses/v2@3e084b0caf710f7bfead967567539214f598c0a2
 
-    - name: Set up anchore/syft # v1.54.1
-      shell: "bash"
-      run: |
-        go install github.com/anchore/syft/cmd/syft@b254e6d92f28c3868a755f62fb3ca8f26e9fee76
-
     - name: Set up temp dir and dist dir
       shell: bash
       run: |
@@ -101,6 +96,11 @@ jobs:
       CHECKSUMS_FILE_PATH: '$BINARY_NAME-"$GITHUB_REF_NAME".sha256sum'
       DIST_DIR: ${{ github.workspace }}/dist
     steps:
+      - name: Set up anchore/syft # v1.54.1
+        shell: "bash"
+        run: |
+          go install github.com/anchore/syft/cmd/syft@b254e6d92f28c3868a755f62fb3ca8f26e9fee76
+
       - name: "mkdir dist dir"
         shell: "bash"
         run: |
