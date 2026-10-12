@@ -63,7 +63,7 @@ jobs:
 
     - name: "Generate checksums of package contents"
       shell: "bash"
-      working-directory: $DIR
+      working-directory: ${{ env.DIR }}
       run: |
         sha256sum -- * > $DIR
     - name: "Archive assets"
