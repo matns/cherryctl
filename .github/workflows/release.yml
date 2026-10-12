@@ -68,12 +68,12 @@ jobs:
         sha256sum -- * > SHA256SUMS
     - name: "Archive assets"
       env:
-        ARCHIVE_NAME: "${{ env.BINARY_NAME}}-${{ github.ref_name }}-${{ env.GOOS}}-${{ env.GOARCH}}"
+        ARCHIVE_NAME: "${{ env.BINARY_NAME}}-${{ github.ref_name }}-${{ matrix.GOOS }}-${{ matrix.GOARCH }}"
       shell: "bash"
       run: |
         mkdir -p "$ARCHIVE_DIR"
         if [[ "$GOOS" == "windows" ]]; then
-          (cd "$DIR" && zip -r "$ARCHIVE_DIR/cherryctl.zip" .)
+          (cd "$DIR" && zip -r "$ARCHIVE_DIR/$ARCHIVE_NAME.zip" .)
         else
           tar -cvzf "$ARCHIVE_DIR/$ARCHIVE_NAME.tar.gz" -C "$DIR" .
         fi
