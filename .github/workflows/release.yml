@@ -98,7 +98,7 @@ jobs:
       artifact-metadata: write
     env:
       SOURCE_NAME: "${{ github.event.repository.name }}"
-      CHECKSUMS_FILE_PATH: '$BINARY_NAME-"$GITHUB_REF_NAME".sha256sum'
+      CHECKSUMS_FILE_PATH: ${{ github.event.repository.name }}-${{ github.ref_name }}.sha256sum # use repo name as binary name
       DIST_DIR: ${{ github.workspace }}/dist
     steps:
       - name: Checkout
