@@ -129,6 +129,7 @@ jobs:
         shell: "bash"
         env:
           SOURCE_SBOM_NAME: "${{ env.SOURCE_NAME }}-$GITHUB_REF_NAME-source"
+          GITHUB_REF_NAME: ${{ github.ref_name }}
         run: |
           $(go env GOPATH)/bin/syft dir:${{ github.workspace }} --source-name "$SOURCE_NAME" --source-version "$GITHUB_REF_NAME" -o spdx-json=$DIST_DIR/$SOURCE_SBOM_NAME.spdx.json
           $(go env GOPATH)/bin/syft dir:${{ github.workspace }} --source-name "$SOURCE_NAME" --source-version "$GITHUB_REF_NAME" -o cyclonedx-json=$DIST_DIR/$SOURCE_SBOM_NAME.cdx.json
