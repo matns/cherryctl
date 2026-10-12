@@ -65,7 +65,7 @@ jobs:
       shell: "bash"
       working-directory: ${{ env.DIR }}
       run: |
-        sha256sum -- * > $DIR
+        sha256sum -- * > SHA256SUMS
     - name: "Archive assets"
       env:
         ARCHIVE_NAME: "$BINARY_NAME-${{ github.ref_name }}-$GOOS-$GOARCH"
