@@ -104,7 +104,7 @@ jobs:
         env:
           DIST_DIR: "${{ steps.prepare.outputs.dist_dir }}"
         run: |
-          cosign sign-blob "$DIST_DIR/$CHECKSUMS_FILE" --bundle "$DIST_DIR/$CHECKSUMS_FILE.sigstore.json --yes
+          cosign sign-blob "$DIST_DIR/$CHECKSUMS_FILE" --bundle "$DIST_DIR/$CHECKSUMS_FILE.sigstore.json" --yes
 
       - name: "Create release"
         shell: "bash"
