@@ -117,3 +117,9 @@ jobs:
             --title "${GITHUB_REF_NAME}" \
             --notes-file "${{ github.workspace }}/${{ needs.compile-release-notes.outputs.filename_release_notes }}" \
             --verify-tag
+  update-homebrew-tap:
+    needs: ["publish-release"]
+    uses: "./.github/workflows/release-update-homebrew-tap.yml"
+    with:
+     release_tag: "${{ github.ref_name }}"
+     secrets: inherit
