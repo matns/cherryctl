@@ -21,7 +21,7 @@ jobs:
               CGO_ENABLED: "0",
               LD_FLAGS_TARGET: "",
               MAIN_PATH: "./main_linux.go",
-              runner: ubuntu-latest
+              runner: "ubuntu-latest"
             }
           - {
               GOOS: "linux",
@@ -33,7 +33,7 @@ jobs:
               CGO_LDFLAGS: "-Wl,-z,shstk -Wl,-z,ibt -Wl,-z,cet-report=error",
               LD_FLAGS_TARGET: "",
               MAIN_PATH: "./main_linux.go",
-              runner: ubuntu-latest
+              runner: "ubuntu-latest"
             }
           - {
               GOOS: "linux",
@@ -42,7 +42,7 @@ jobs:
               CGO_ENABLED: "0",
               LD_FLAGS_TARGET: "",
               MAIN_PATH: "./main_linux.go",
-              runner: ubuntu-latest
+              runner: "ubuntu-latest"
             }
           - {
               GOOS: "windows",
@@ -51,7 +51,7 @@ jobs:
               CGO_ENABLED: "0",
               LD_FLAGS_TARGET: "",
               MAIN_PATH: "./main_windows.go",
-              runner: ubuntu-latest
+              runner: "ubuntu-latest"
             }
           - {
               GOOS: "windows",
@@ -60,7 +60,7 @@ jobs:
               CGO_ENABLED: "0",
               LD_FLAGS_TARGET: "",
               MAIN_PATH: "./main_windows.go",
-              runner: ubuntu-latest
+              runner: "ubuntu-latest"
             }
           - {
               GOOS: "darwin",
@@ -69,7 +69,7 @@ jobs:
               CGO_ENABLED: "0",
               LD_FLAGS_TARGET: "",
               MAIN_PATH: "./main_darwin.go",
-              runner: ubuntu-latest
+              runner: "ubuntu-latest"
             }
           - {
               GOOS: "darwin",
@@ -78,7 +78,7 @@ jobs:
               CGO_ENABLED: "0",
               LD_FLAGS_TARGET: "",
               MAIN_PATH: "./main_darwin.go",
-              runner: ubuntu-latest
+              runner: "ubuntu-latest"
             }
     env:
       LD_FLAGS_COMMON: "-X github.com/cherryservers/cherryctl/cmd.Version=${{ github.ref_name }}"
@@ -165,5 +165,5 @@ jobs:
         path: |
           ${{ steps.prepare.outputs.dist_dir }}/*.tar.gz
           ${{ steps.prepare.outputs.dist_dir }}/*.zip
-        if-no-files-found: error
+        if-no-files-found: "error"
         compression-level: 0
