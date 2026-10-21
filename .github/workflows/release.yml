@@ -122,4 +122,4 @@ jobs:
     uses: "./.github/workflows/release-update-homebrew-tap.yml"
     with:
       release_tag: "${{ github.ref_name }}"
-      secrets: inherit
+    secrets: inherit
