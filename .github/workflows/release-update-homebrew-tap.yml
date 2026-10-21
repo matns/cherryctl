@@ -32,7 +32,7 @@ jobs:
           mkdir -p dist
 
           gh release download "$RELEASE_TAG" \
-            --repo cherryservers/cherryctl \
+            --repo matns/cherryctl \
             --pattern "cherryctl-${RELEASE_TAG}.sha256sum" \
             --dir dist
 
