@@ -124,7 +124,7 @@ jobs:
           private-key: "${{ secrets.CHERRYCTL_TAP_UPDATER_APP_PRIVATE_KEY }}"
           owner: "matns"
           repositories: "homebrew-cherryctl"
-          permission-contents: "write"
+          permission-single-file: "write"
 
       - name: "Update Homebrew Repository"
         shell: "bash"
