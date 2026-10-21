@@ -11,7 +11,7 @@ on:
 
 jobs:
   compile-third-party-licenses:
-    if: github.ref_type == 'tag'
+    if: "github.ref_type == 'tag'"
     outputs:
       filename_third_party_licenses: "${{ steps.compile-third-party-licenses.outputs.file_name }}"
       artifact_id_third_party_licenses: "${{ steps.upload-third-party-licenses-file.outputs.artifact_id }}"
@@ -60,4 +60,4 @@ jobs:
       with:
         name: "third_party_licenses-${{ github.ref_name }}"
         path: "${{ steps.prepare.outputs.dir }}/${{ steps.prepare.outputs.file_name }}"
-        if-no-files-found: error
+        if-no-files-found: "error"

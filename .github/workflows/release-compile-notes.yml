@@ -56,4 +56,4 @@ jobs:
           name: "release_notes-${{ github.ref_name }}"
           path: "${{ steps.prepare.outputs.release_notes_path }}"
           archive: false
-          if-no-files-found: error
+          if-no-files-found: "error"
