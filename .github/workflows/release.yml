@@ -121,5 +121,5 @@ jobs:
     needs: ["publish-release"]
     uses: "./.github/workflows/release-update-homebrew-tap.yml"
     with:
-     release_tag: "${{ github.ref_name }}"
-     secrets: inherit
+      release_tag: "${{ github.ref_name }}"
+      secrets: inherit
