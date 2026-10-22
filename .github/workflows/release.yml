@@ -125,7 +125,7 @@ jobs:
 
     steps:
       - name: "Update Homebrew Tap"
-        uses: "./.github/actions/update-homebrew-formula-with-release/action.yml"
+        uses: "./.github/actions/update-homebrew-formula-with-release"
         with:
          binary_name: "cherryctl"
          license: "MPL-2.0"
