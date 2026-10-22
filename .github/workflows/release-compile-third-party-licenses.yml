@@ -36,13 +36,22 @@ jobs:
         echo "dir=$DIR" >> "$GITHUB_OUTPUT"
         echo "filename_third_party_licenses=$FILE_NAME" >> "$GITHUB_OUTPUT"
 
+    - name: "Cache go-licenses"
+      id: "cache-go-licenses"
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: "~/go/bin/go-licenses"
+        key: go-licenses-${{ runner.os }}-${{ runner.arch }}-v2.0.1
+
     - name: "Set up Go"
+      if: steps.cache-go-licenses.outputs.cache-hit != 'true'
       uses: "actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e" # v7.0.0
       with:
         #go-version-file: '${{ github.workspace }}/go.mod'
         go-version: "stable"
 
     - name: "Set up google/go-licenses" # v2.0.1
+      if: steps.cache-go-licenses.outputs.cache-hit != 'true'
       shell: "bash"
       run: |
         go install github.com/google/go-licenses/v2@3e084b0caf710f7bfead967567539214f598c0a2
