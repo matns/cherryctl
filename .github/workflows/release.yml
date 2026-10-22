@@ -7,14 +7,14 @@ on:
 
 jobs:
   compile-third-party-licenses:
-    uses: "./.github/workflows/release-compile-third-party-licenses.yml"
+    uses: "$/.github/workflows/release-compile-third-party-licenses.yml"
 
   compile-release-notes:
-    uses: "./.github/workflows/release-compile-notes.yml"
+    uses: "$/.github/workflows/release-compile-notes.yml"
 
   compile-packages:
     needs: "compile-third-party-licenses"
-    uses: "./.github/workflows/release-compile-packages.yml"
+    uses: "$/.github/workflows/release-compile-packages.yml"
     with:
      artifact_id_third_party_licenses: ${{ needs.compile-third-party-licenses.outputs.artifact_id }}
 
