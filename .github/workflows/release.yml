@@ -118,7 +118,7 @@ jobs:
             --notes-file "${{ github.workspace }}/${{ needs.compile-release-notes.outputs.filename_release_notes }}" \
             --verify-tag
   update-homebrew-tap:
-    name: ""
+    name: "Update Homebrew Tap"
     runs-on: "ubuntu-latest"
     needs: ["publish-release"]
     environment: "publish-homebrew-formula"
