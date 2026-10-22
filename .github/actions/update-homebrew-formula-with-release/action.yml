@@ -155,12 +155,13 @@ runs:
       shell: "bash"
       env:
         GH_TOKEN: "${{ steps.app-token.outputs.token }}"
+        HOMEBREW_REPO_OWNER: "${{ inputs.homebrew_repo_owner }}"
         HOMEBREW_REPO: "${{ inputs.homebrew_repo_name }}"
         PATHNAME_HOMEBREW_FORMULA: "${{ inputs.pathname_homebrew_formula }}"
         RELEASE_TAG: "${{ inputs.release_tag }}"
       run: |
         set -euo pipefail
-
+        REPO="HOMEBREW_REPO_OWNER/$HOMEBREW_REPO"
         SHA=$(gh api \
           "repos/$HOMEBREW_REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
           --jq '.sha')
@@ -169,7 +170,7 @@ runs:
 
         gh api \
           --method PUT \
-          "repos/$HOMEBREW_REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
+          "repos/$REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
           -f message="chore: update ${{ inputs.binary_name }} to $RELEASE_TAG" \
           -f content="$CONTENT" \
           -f sha="$SHA"
