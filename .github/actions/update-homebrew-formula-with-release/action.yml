@@ -50,7 +50,7 @@ runs:
         mkdir -p dist
 
         gh release download "$RELEASE_TAG" \
-          --repo ${{ inputs.releases_repo_owner }}/${{ inputs.releases_repo_name }} \
+          --repo "${{ inputs.releases_repo_owner }}/${{ inputs.releases_repo_name }}" \
           --pattern "${{ inputs.binary_name }}-${RELEASE_TAG}.sha256sum" \
           --dir dist
     - name: "Generate Homebrew formula"
@@ -149,7 +149,7 @@ runs:
         client-id: "${{ inputs.formula_updater_app_client_id }}"
         private-key: "${{ inputs.secret_formula_updater_app_private_key }}"
         owner: "${{ inputs.homebrew_repo_owner }}"
-        repositories: ${{ inputs.homebrew_repo_name }}"
+        repositories: "${{ inputs.homebrew_repo_name }}"
         permission-single-file: "write"
     - name: "Update Homebrew Repository"
       shell: "bash"
