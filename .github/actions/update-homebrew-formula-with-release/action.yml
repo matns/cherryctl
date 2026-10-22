@@ -163,7 +163,7 @@ runs:
         set -euo pipefail
         REPO="$HOMEBREW_REPO_OWNER/$HOMEBREW_REPO"
         SHA=$(gh api \
-          "repos/$HOMEBREW_REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
+          "repos/$REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
           --jq '.sha')
 
         CONTENT=$(base64 -w0 ${{ inputs.binary_name }}.rb)
