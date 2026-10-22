@@ -161,7 +161,7 @@ runs:
         RELEASE_TAG: "${{ inputs.release_tag }}"
       run: |
         set -euo pipefail
-        REPO="HOMEBREW_REPO_OWNER/$HOMEBREW_REPO"
+        REPO="$HOMEBREW_REPO_OWNER/$HOMEBREW_REPO"
         SHA=$(gh api \
           "repos/$HOMEBREW_REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
           --jq '.sha')
