@@ -1,0 +1,14 @@
+name: "Scan: Pull Requests (OSV-Scanner)"
+
+on:
+  pull_request:
+    branches: ["master"]
+
+permissions:
+  actions: "read"
+  security-events: "write"
+  contents: "read"
+
+jobs:
+  scan-pr:
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable-pr.yml@v2.7.0"
