@@ -26,7 +26,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: "Cache git-cliff"
+        id: "cache-git-cliff"
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: "~/.cargo/bin/git-cliff"
+          key: git-cliff-${{ runner.os }}-${{ runner.arch }}-v2.14.2
+
       - name: "Install git-cliff"
+        if: steps.git-cliff-cache.outputs.cache-hit != 'true'
         shell: "bash"
         run: | # v2.14.2
           cargo install --git https://github.com/orhun/git-cliff.git --rev 5d996de8220d26c0cb8ff329d31791570cab262f git-cliff
