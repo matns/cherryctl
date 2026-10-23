@@ -37,7 +37,7 @@ jobs:
 
     needs: ["compile-packages", "compile-release-notes"]
     permissions:
-      contents: "write"
+      contents: "read"
       id-token: "write"
       attestations: "write"
       artifact-metadata: "write"
