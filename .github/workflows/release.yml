@@ -5,6 +5,7 @@ on:
     tags:
     - "v[0-9].[0-9]+.[0-9]+"
 
+permissions: {}
 concurrency:
   group: release
   cancel-in-progress: false
@@ -12,13 +13,19 @@ concurrency:
 
 jobs:
   compile-third-party-licenses:
+    permissions:
+      contents: "read"
     uses: "$/.github/workflows/release-compile-third-party-licenses.yml"
 
   compile-release-notes:
+    permissions:
+      contents: "read"
     uses: "$/.github/workflows/release-compile-notes.yml"
 
   compile-packages:
     needs: "compile-third-party-licenses"
+    permissions:
+      contents: "read"
     uses: "$/.github/workflows/release-compile-packages.yml"
     with:
      artifact_id_third_party_licenses: ${{ needs.compile-third-party-licenses.outputs.artifact_id }}
@@ -126,6 +133,8 @@ jobs:
     name: "Update Homebrew Tap"
     runs-on: "ubuntu-latest"
     needs: ["publish-release"]
+    permissions:
+      contents: "read"
     environment: "publish-homebrew-formula"
 
     steps:
