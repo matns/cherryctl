@@ -1,0 +1,62 @@
+---
+name: "Release: Compile Notes"
+on:
+  workflow_call:
+    outputs:
+      artifact_id_release_notes:
+        description: "Artifact ID for Release Notes"
+        value: "${{ jobs.compile-release-notes.outputs.artifact_id_release_notes }}"
+      filename_release_notes:
+        description: "File name for the specific release notes file"
+        value: "${{ jobs.compile-release-notes.outputs.filename_release_notes }}"
+permissions: {}
+jobs:
+  compile-release-notes:
+    if: "github.ref_type == 'tag'"
+    outputs:
+      artifact_id_release_notes: "${{ steps.upload-release-notes.outputs.artifact-id }}"
+      filename_release_notes: "${{ steps.prepare.outputs.filename_release_notes }}"
+    runs-on: "ubuntu-latest"
+    name: "Compile release notes"
+    permissions:
+      contents: "read"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v7.0.1"
+        with:
+          fetch-depth: 0
+      - name: "Cache git-cliff"
+        id: "cache-git-cliff"
+        uses: actions/cache@v6.1.0
+        with:
+          path: "~/.cargo/bin/git-cliff"
+          key: git-cliff-${{ runner.os }}-${{ runner.arch }}-v2.14.2
+      - name: "Install git-cliff"
+        if: steps.cache-git-cliff.outputs.cache-hit != 'true'
+        shell: "bash"
+        run: | # v2.14.2
+          cargo install --git https://github.com/orhun/git-cliff.git --rev 5d996de8220d26c0cb8ff329d31791570cab262f git-cliff
+      - name: "Prepare files and dirs"
+        id: "prepare"
+        shell: "bash"
+        run: |
+          DIR=$(mktemp -d)
+          FILE_NAME="RELEASE_NOTES.md"
+          echo "release_notes_path=$DIR/$FILE_NAME" >> "$GITHUB_OUTPUT"
+          echo "filename_release_notes=$FILE_NAME" >> "$GITHUB_OUTPUT"
+      - name: "Generate release notes with Cliff"
+        shell: "bash"
+        env:
+          # Use the workflow token to authenticate to GitHub so that we are not ratelimited. git-cliff contacts GitHub to determine first time contributors and to associate commit hashes with GitHub URIs
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_NOTES_PATH: "${{ steps.prepare.outputs.release_notes_path }}"
+        run: |
+          git cliff --current --config "${{ github.workspace }}/cliff.toml" --output "$RELEASE_NOTES_PATH"
+      - name: "Upload release notes"
+        id: "upload-release-notes"
+        uses: "actions/upload-artifact@v7.0.2"
+        with:
+          name: "release_notes-${{ github.ref_name }}"
+          path: "${{ steps.prepare.outputs.release_notes_path }}"
+          archive: false
+          if-no-files-found: "error"

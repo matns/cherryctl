@@ -1,0 +1,41 @@
+---
+name: "Check: Go Formatting"
+
+on:
+  push:
+    paths:
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+      - ".github/workflows/gofmt.yml"
+  pull_request:
+
+permissions: {}
+
+jobs:
+  gofmt:
+    name: "Check Go formatting"
+    permissions:
+      contents: "read"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v7.0.1"
+        with:
+          persist-credentials: false
+
+      - name: "Set up Go"
+        uses: "actions/setup-go@v7.0.0"
+        with:
+          go-version-file: "go.mod"
+          cache: true
+
+      - name: "Check formatting"
+        run: |-
+          files=$(gofmt -l .)
+          if [ -n "$files" ]; then
+            while IFS= read -r file; do
+              echo "::error file=${file},title=Go formatting::${file} is not gofmt formatted"
+            done <<< "$files"
+            exit 1
+          fi

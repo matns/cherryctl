@@ -1,0 +1,46 @@
+---
+name: "Check: YAML formatting"
+
+on:
+  push:
+    paths:
+      - "**/*.yaml"
+      - "**/*.yml"
+      - ".yamlfmt"
+  pull_request:
+
+permissions: {}
+
+jobs:
+  yamlfmt:
+    permissions:
+      contents: "read"
+    name: "Check YAML formatting"
+    runs-on: "ubuntu-latest"
+    env:
+      YAMLFMT_COMMIT: "21ca5323a9c87ee37a434e0ca908efc0a89daa07" # v0.21.0
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v7.0.1"
+        with:
+          persist-credentials: false
+
+      - name: "Set up Go"
+        uses: "actions/setup-go@v7.0.0"
+        with:
+          go-version: "stable"
+          cache: false
+
+      - name: "Cache yamlfmt"
+        id: "cache-yamlfmt"
+        uses: "actions/cache@v6.1.0"
+        with:
+          path: "~/go/bin/yamlfmt"
+          key: "yamlfmt-${{ runner.os }}-${{ runner.arch }}-${{ env.YAMLFMT_COMMIT }}"
+
+      - name: "Install yamlfmt"
+        if: "steps.cache-yamlfmt.outputs.cache-hit != 'true'"
+        run: go install "github.com/google/yamlfmt/cmd/yamlfmt@${YAMLFMT_COMMIT}"
+
+      - name: "Check formatting"
+        run: yamlfmt -lint -quiet .

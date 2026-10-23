@@ -1,0 +1,103 @@
+---
+name: "Release: Compile packages"
+on:
+  workflow_call:
+    inputs:
+      artifact_id_third_party_licenses:
+        type: "string"
+        required: true
+permissions: {}
+jobs:
+  build-binaries:
+    permissions:
+      contents: "read"
+    strategy:
+      fail-fast: true
+      matrix: &targets
+        include:
+          - {GOOS: "linux", GOARCH: "amd64", TARGET: "linux-amd64-static", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_linux.go", runner: "ubuntu-latest"}
+          - {GOOS: "linux", GOARCH: "amd64", TARGET: "linux-amd64-gnu", CGO_ENABLED: "1",
+            # Shadow Stack Support
+            CGO_CFLAGS: "-fcf-protection=full", CGO_LDFLAGS: "-Wl,-z,shstk -Wl,-z,ibt -Wl,-z,cet-report=error", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_linux.go", runner: "ubuntu-latest"}
+          - {GOOS: "linux", GOARCH: "arm64", TARGET: "linux-arm64-static", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_linux.go", runner: "ubuntu-latest"}
+          - {GOOS: "windows", GOARCH: "amd64", TARGET: "windows-amd64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_windows.go", runner: "ubuntu-latest"}
+          - {GOOS: "windows", GOARCH: "arm64", TARGET: "windows-arm64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_windows.go", runner: "ubuntu-latest"}
+          - {GOOS: "darwin", GOARCH: "amd64", TARGET: "darwin-amd64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_darwin.go", runner: "ubuntu-latest"}
+          - {GOOS: "darwin", GOARCH: "arm64", TARGET: "darwin-arm64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_darwin.go", runner: "ubuntu-latest"}
+    env:
+      LD_FLAGS_COMMON: "-X github.com/cherryservers/cherryctl/cmd.Version=${{ github.ref_name }}"
+      BINARY_NAME: "cherryctl"
+      SOURCE_NAME: "${{ github.event.repository.name }}"
+    runs-on: "${{ matrix.runner }}"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v7.0.1"
+        with:
+          fetch-depth: 0
+      - name: "Set up Go"
+        uses: "actions/setup-go@v7.0.0"
+        with:
+          #go-version-file: '${{ github.workspace }}/go.mod'
+          go-version: "stable"
+      - name: "Prepare"
+        id: "prepare"
+        shell: "bash"
+        run: |
+          DIR=$(mktemp -d) && echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+          DIST_DIR=$(mktemp -d) && echo "dist_dir=$DIST_DIR" >> "$GITHUB_OUTPUT"
+      - name: "Build binary"
+        env:
+          GOOS: "${{ matrix.GOOS }}"
+          GOARCH: "${{ matrix.GOARCH }}"
+          LD_FLAGS_TARGET: "${{ matrix.LD_FLAGS_TARGET }}"
+          MAIN_PATH: "${{ matrix.MAIN_PATH }}"
+          CGO_ENABLED: "${{ matrix.CGO_ENABLED }}"
+          CGO_CFLAGS: "${{ matrix.CGO_CFLAGS }}"
+          CGO_LDFLAGS: "${{ matrix.CGO_LDFLAGS }}"
+          DIR: "${{ steps.prepare.outputs.dir }}"
+        run: |
+          go build \
+            -trimpath \
+            -ldflags "$LDFLAGS_COMMON $LD_FLAGS_TARGET" \
+            -o "$DIR/$BINARY_NAME" \
+            "$MAIN_PATH"
+      - name: "Copy cherryctl license into package dir"
+        shell: "bash"
+        env:
+          DIR: "${{ steps.prepare.outputs.dir }}"
+        run: |
+          cp "${{ github.workspace }}/LICENSE.md" "$DIR/LICENSE.md"
+      - name: "Fetch worklow third party licenses and copy into package dir"
+        uses: "actions/download-artifact@v8.0.2"
+        with:
+          # pattern: "third_party_licenses-${{ github.ref_name }}"
+          artifact-ids: "${{ inputs.artifact_id_third_party_licenses }}"
+          path: "${{ steps.prepare.outputs.dir }}"
+          merge-multiple: true
+      - name: "Generate checksums of package contents"
+        shell: "bash"
+        working-directory: "${{ steps.prepare.outputs.dir }}"
+        run: |
+          sha256sum -- * > SHA256SUMS
+      - name: "Archive the package"
+        env:
+          GOOS: "${{ matrix.GOOS }}"
+          ARCHIVE_NAME: "${{ format('{0}-{1}-{2}', env.BINARY_NAME, github.ref_name, matrix.TARGET) }}"
+          DIST_DIR: "${{ steps.prepare.outputs.dist_dir }}"
+          DIR: "${{ steps.prepare.outputs.dir }}"
+        shell: "bash"
+        run: |
+          if [[ "$GOOS" == "windows" ]]; then
+            (cd "$DIR" && zip -r "$DIST_DIR/$ARCHIVE_NAME.zip" .)
+          else
+            tar -cvzf "$DIST_DIR/$ARCHIVE_NAME.tar.gz" -C "$DIR" .
+          fi
+      - name: "Upload workflow artifacts"
+        uses: "actions/upload-artifact@v7.0.2"
+        with:
+          name: "release-tarballs-${{ github.ref_name }}-${{ matrix.TARGET }}"
+          path: |
+            ${{ steps.prepare.outputs.dist_dir }}/*.tar.gz
+            ${{ steps.prepare.outputs.dist_dir }}/*.zip
+          if-no-files-found: "error"
+          compression-level: 0
