@@ -5,6 +5,11 @@ on:
     tags:
     - "v[0-9].[0-9]+.[0-9]+"
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   compile-third-party-licenses:
     uses: "$/.github/workflows/release-compile-third-party-licenses.yml"
