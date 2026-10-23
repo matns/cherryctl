@@ -1,0 +1,22 @@
+---
+name: "Run gosec"
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "master"
+permissions: {}
+jobs:
+  test-with-sast:
+    runs-on: "ubuntu-latest"
+    env:
+      GO111MODULE: on
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v7.0.1"
+      - name: "Run gosec"
+        uses: "securego/gosec@v2.30.0"
+        with:
+          args: ./...
