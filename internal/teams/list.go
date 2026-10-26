@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) List() *cobra.Command {
+func (c *Client) List() (*cobra.Command, error) {
 	teamListCmd := &cobra.Command{
 		Use:     `list`,
 		Aliases: []string{"ls"},
@@ -37,5 +37,5 @@ func (c *Client) List() *cobra.Command {
 		},
 	}
 
-	return teamListCmd
+	return teamListCmd, nil
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Get() *cobra.Command {
+func (c *Client) Get() (*cobra.Command, error) {
 	var teamID int
 	teamGetCmd := &cobra.Command{
 		Use:   `get ID`,
@@ -48,5 +48,5 @@ func (c *Client) Get() *cobra.Command {
 
 	teamGetCmd.Flags().IntVarP(&teamID, "team-id", "i", 0, "The team's ID.")
 
-	return teamGetCmd
+	return teamGetCmd, nil
 }

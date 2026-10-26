@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Delete() *cobra.Command {
+func (c *Client) Delete() (*cobra.Command, error) {
 	var teamID int
 	var force bool
 	deleteTeamCmd := &cobra.Command{
@@ -20,7 +20,7 @@ func (c *Client) Delete() *cobra.Command {
   cherryctl team delete 12345
   >
   ✔ Are you sure you want to delete team 12345: y
-  		
+
   # Deletes a team, skipping confirmation:
   cherryctl team delete -f -t 12345`,
 
@@ -58,5 +58,5 @@ func (c *Client) Delete() *cobra.Command {
 	deleteTeamCmd.Flags().IntVarP(&teamID, "team-id", "t", 0, "The ID of a team.")
 	deleteTeamCmd.Flags().BoolVarP(&force, "force", "f", false, "Skips confirmation for the tean deletion.")
 
-	return deleteTeamCmd
+	return deleteTeamCmd, nil
 }

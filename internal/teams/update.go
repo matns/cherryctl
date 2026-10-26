@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Update() *cobra.Command {
+func (c *Client) Update() (*cobra.Command, error) {
 	var (
 		teamID   int
 		currency string
@@ -69,5 +69,5 @@ func (c *Client) Update() *cobra.Command {
 	teamUpdateCmd.Flags().StringVarP(&teamType, "type", "", "", "Team type, available options: personal, business.")
 	teamUpdateCmd.Flags().StringVarP(&name, "name", "", "", "Team name.")
 
-	return teamUpdateCmd
+	return teamUpdateCmd, nil
 }
