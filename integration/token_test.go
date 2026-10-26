@@ -174,7 +174,7 @@ func TestAuthConfigHierarchy(t *testing.T) {
 }
 
 func testAuthConfigHierarchy(t *testing.T, preExecute func(cli *cmd.Cli)) {
-	cli := cmd.NewCli()
+	cli, _ := cmd.NewCli()
 	discardStdout(t)
 
 	mux := http.NewServeMux()

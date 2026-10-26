@@ -14,7 +14,7 @@ type Client struct {
 	Out           outputs.Outputer
 }
 
-func (c *Client) NewCommand() *cobra.Command {
+func (c *Client) NewCommand() (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:     `storage`,
 		Aliases: []string{"storages", "volume", "volumes"},
@@ -33,17 +33,26 @@ func (c *Client) NewCommand() *cobra.Command {
 		},
 	}
 
+	list, err := c.List()
+	if err != nil {
+		return nil, err
+	}
+
+	create, err := c.Create()
+	if err != nil {
+		return nil, err
+	}
 	cmd.AddCommand(
 		c.Get(),
-		c.List(),
-		c.Create(),
+		list,
+		create,
 		c.Update(),
 		c.Attach(),
 		c.Detach(),
 		c.Delete(),
 	)
 
-	return cmd
+	return cmd, nil
 }
 
 type Servicer interface {

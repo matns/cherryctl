@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Command) list() *cobra.Command {
+func (c *Command) list() (*cobra.Command, error) {
 	var region string
 	var teamID int
 	var types []string
@@ -71,7 +71,10 @@ func (c *Command) list() *cobra.Command {
 	planGetCmd.Flags().StringSliceVarP(&types, "type", "", []string{}, "Comma separated list of available plan types.")
 	planGetCmd.Flags().IntVarP(&teamID, "team-id", "t", 0, "The team's ID. Return plans prices based on team billing details.")
 
-	planGetCmd.MarkFlagRequired("team-id")
+	err := planGetCmd.MarkFlagRequired("team-id")
+	if err != nil {
+		return nil, err
+	}
 
-	return planGetCmd
+	return planGetCmd, nil
 }

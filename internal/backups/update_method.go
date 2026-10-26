@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) UpdateMethod() *cobra.Command {
+func (c *Client) UpdateMethod() (*cobra.Command, error) {
 	var (
 		backupID    int
 		serviceName string
@@ -71,8 +71,11 @@ func (c *Client) UpdateMethod() *cobra.Command {
 	backupUpdateCmd.Flags().BoolVarP(&enable, "enable", "e", false, "Enable method.")
 	backupUpdateCmd.Flags().BoolVarP(&disable, "disable", "d", false, "Disable method.")
 
-	backupUpdateCmd.MarkFlagRequired("method-name")
+	err := backupUpdateCmd.MarkFlagRequired("method-name")
+	if err != nil {
+		return nil, err
+	}
 	backupUpdateCmd.MarkFlagsMutuallyExclusive("enable", "disable")
 
-	return backupUpdateCmd
+	return backupUpdateCmd, nil
 }

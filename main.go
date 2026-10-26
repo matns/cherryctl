@@ -10,7 +10,10 @@ import (
 )
 
 func main() {
-	cli := cmd.NewCli()
+	cli, err := cmd.NewCli()
+	if err != nil {
+		os.Exit(1)
+	}
 	if err := cli.MainCmd.Execute(); err != nil {
 		os.Exit(1)
 	}

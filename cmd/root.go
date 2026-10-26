@@ -4,6 +4,8 @@ Copyright © 2022 Cherry Severs <support@cherryservers.com>
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/cherryservers/cherryctl/internal/backups"
 	root "github.com/cherryservers/cherryctl/internal/cli"
 	"github.com/cherryservers/cherryctl/internal/docs"
@@ -30,13 +32,18 @@ type Cli struct {
 	Outputer outputs.Outputer
 }
 
-func NewCli() *Cli {
+func NewCli() (*Cli, error) {
 	cli := &Cli{
 		Outputer: &outputs.Standard{},
 	}
 
 	rootClient := root.NewClient(Version)
-	rootCmd := rootClient.NewCommand()
+
+	rootCmd, err := rootClient.NewCommand()
+	if err != nil {
+		return nil, err
+	}
+
 	rootCmd.DisableSuggestions = false
 	cli.MainCmd = rootCmd
 
@@ -47,7 +54,7 @@ func NewCli() *Cli {
 			cli.Outputer.SetFormat(rootClient.Format())
 		},
 	)
-	return cli
+	return cli, nil
 }
 
 type sharedDeps struct {
@@ -81,27 +88,73 @@ func (d *serverDeps) Client() cherrygo.ServersService {
 	return d.client.API(nil).Servers
 }
 
-func (cli *Cli) RegisterCommands(client *root.Client) {
+func (cli *Cli) RegisterCommands(client *root.Client) error {
 	shared := sharedDeps{
 		out:    cli.Outputer,
 		client: client,
 	}
-	cli.MainCmd.AddCommand(
-		docs.NewCommand(),
 
-		initPck.NewClient(client).NewCommand(),
-		servers.NewCommand(&serverDeps{sharedDeps: shared}).CobraCommand(),
-		ips.NewClient(client, cli.Outputer).NewCommand(),
-		storages.NewClient(client, cli.Outputer).NewCommand(),
-		backups.NewClient(client, cli.Outputer).NewCommand(),
-		regions.NewClient(client, cli.Outputer).NewCommand(),
-		// We don't have the dependencies initialized yet, as that's done
-		// on pre-execution, so we need an injector interface.
-		plans.NewCommand(&planDeps{sharedDeps: shared}).CobraCommand(),
-		projects.NewClient(client, cli.Outputer).NewCommand(),
-		teams.NewClient(client, cli.Outputer).NewCommand(),
-		sshkeys.NewClient(client, cli.Outputer).NewCommand(),
-		images.NewClient(client, cli.Outputer).NewCommand(),
-		users.NewClient(client, cli.Outputer).NewCommand(),
-	)
+	register := func(cmd *cobra.Command, err error) error {
+		if err != nil {
+			return err
+		}
+
+		cli.MainCmd.AddCommand(cmd)
+		return nil
+	}
+
+	if err := register(docs.NewCommand()); err != nil {
+		return fmt.Errorf("register docs command: %w", err)
+	}
+
+	if err := register(initPck.NewClient(client).NewCommand()); err != nil {
+		return fmt.Errorf("register init command: %w", err)
+	}
+
+	if err := register(servers.NewCommand(&serverDeps{sharedDeps: shared}).CobraCommand()); err != nil {
+		return fmt.Errorf("register servers command: %w", err)
+	}
+
+	if err := register(ips.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+		return fmt.Errorf("register ips command: %w", err)
+	}
+
+	if err := register(storages.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+		return fmt.Errorf("register storages command: %w", err)
+	}
+
+	if err := register(backups.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+		return fmt.Errorf("register backups command: %w", err)
+	}
+
+	if err := register(regions.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+		return fmt.Errorf("register regions command: %w", err)
+	}
+
+	// We don't have the dependencies initialized yet, as that's done on pre-execution, so we need an injector interface.
+	if err := register(plans.NewCommand(&planDeps{sharedDeps: shared}).CobraCommand()); err != nil {
+		return fmt.Errorf("register plans command: %w", err)
+	}
+
+	if err := register(projects.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+		return fmt.Errorf("register projects command: %w", err)
+	}
+
+	if err := register(teams.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+		return fmt.Errorf("register teams command: %w", err)
+	}
+
+	if err := register(sshkeys.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+		return fmt.Errorf("register sshkeys command: %w", err)
+	}
+
+	if err := register(images.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+		return fmt.Errorf("register images command: %w", err)
+	}
+
+	if err := register(users.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+		return fmt.Errorf("register users command: %w", err)
+	}
+
+	return nil
 }

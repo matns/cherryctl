@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Update() *cobra.Command {
+func (c *Client) Update() (*cobra.Command, error) {
 	var (
 		sshKeyID  int
 		label     string
@@ -56,7 +56,10 @@ func (c *Client) Update() *cobra.Command {
 	sshKeyUpdateCmd.Flags().StringVarP(&label, "label", "", "", "Label of the SSH key.")
 	sshKeyUpdateCmd.Flags().StringVarP(&publicKey, "key", "", "", "Public SSH key string.")
 
-	sshKeyUpdateCmd.MarkFlagRequired("ssh-key-id")
+	err := sshKeyUpdateCmd.MarkFlagRequired("ssh-key-id")
+	if err != nil {
+		return nil, err
+	}
 
-	return sshKeyUpdateCmd
+	return sshKeyUpdateCmd, nil
 }

@@ -10,7 +10,7 @@ type Command struct {
 	Deps
 }
 
-func (c *Command) CobraCommand() *cobra.Command {
+func (c *Command) CobraCommand() (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:     `server`,
 		Aliases: []string{"servers", "device", "devices"},
@@ -18,9 +18,14 @@ func (c *Command) CobraCommand() *cobra.Command {
 		Long:    "Server operations: create, get, list, delete, start, stop, reboot, reinstall, reset-bmc-password and list-cycles.",
 	}
 
+	list, err := c.List()
+	if err != nil {
+		return nil, err
+	}
+
 	cmd.AddCommand(
 		c.Get(),
-		c.List(),
+		list,
 		c.Create(),
 		c.Update(),
 		c.Start(),
@@ -35,7 +40,7 @@ func (c *Command) CobraCommand() *cobra.Command {
 		c.Upgrade(),
 	)
 
-	return cmd
+	return cmd, nil
 }
 
 type Deps interface {

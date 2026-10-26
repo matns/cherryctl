@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Command) List() *cobra.Command {
+func (c *Command) List() (*cobra.Command, error) {
 	var projectID int
 	var search string
 	serverListCmd := &cobra.Command{
@@ -51,7 +51,10 @@ func (c *Command) List() *cobra.Command {
 	serverListCmd.Flags().IntVarP(&projectID, "project-id", "p", 0, "The project's ID.")
 	serverListCmd.Flags().StringVarP(&search, "search", "", "", "Search server by Hostname or Public IP phrase.")
 
-	serverListCmd.MarkFlagRequired("project-id")
+	err := serverListCmd.MarkFlagRequired("project-id")
+	if err != nil {
+		return nil, err
+	}
 
-	return serverListCmd
+	return serverListCmd, nil
 }

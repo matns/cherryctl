@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Create() *cobra.Command {
+func (c *Client) Create() (*cobra.Command, error) {
 	var (
 		projectID      int
 		serverID       int
@@ -68,10 +68,16 @@ func (c *Client) Create() *cobra.Command {
 	backupCreateCmd.Flags().StringVarP(&backupPlan, "plan", "", "", "Backup storage plan slug.")
 	backupCreateCmd.Flags().StringVarP(&sshKey, "ssh-key", "", "", "Plain SSH key that will be stored in backup service.")
 
-	backupCreateCmd.MarkFlagRequired("region")
-	backupCreateCmd.MarkFlagRequired("plan")
+	err := backupCreateCmd.MarkFlagRequired("region")
+	if err != nil {
+		return nil, err
+	}
+	err = backupCreateCmd.MarkFlagRequired("plan")
+	if err != nil {
+		return nil, err
+	}
 
 	backupCreateCmd.MarkFlagsMutuallyExclusive("server-id", "server-hostname")
 
-	return backupCreateCmd
+	return backupCreateCmd, nil
 }

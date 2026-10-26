@@ -13,7 +13,7 @@ type Client struct {
 	Out      outputs.Outputer
 }
 
-func (c *Client) NewCommand() *cobra.Command {
+func (c *Client) NewCommand() (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:     `region`,
 		Aliases: []string{"regions", "location", "locations"},
@@ -36,7 +36,7 @@ func (c *Client) NewCommand() *cobra.Command {
 		c.List(),
 	)
 
-	return cmd
+	return cmd, nil
 }
 
 type Servicer interface {

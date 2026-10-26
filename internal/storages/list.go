@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) List() *cobra.Command {
+func (c *Client) List() (*cobra.Command, error) {
 	var projectID int
 	storagesListCmd := &cobra.Command{
 		Use:   `list -p <project_id>`,
@@ -40,7 +40,11 @@ func (c *Client) List() *cobra.Command {
 	}
 
 	storagesListCmd.Flags().IntVarP(&projectID, "project-id", "p", 0, "The project's ID.")
-	storagesListCmd.MarkFlagRequired("project-id")
 
-	return storagesListCmd
+	err := storagesListCmd.MarkFlagRequired("project-id")
+	if err != nil {
+		return nil, err
+	}
+
+	return storagesListCmd, nil
 }

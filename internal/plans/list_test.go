@@ -69,7 +69,7 @@ func TestList(t *testing.T) {
 			c := Command{
 				Deps: dep,
 			}
-			cmd := c.list()
+			cmd, _ := c.list()
 			cmd.SetArgs(tc.args)
 			cmd.SilenceUsage = true
 

@@ -13,7 +13,7 @@ type Client struct {
 	Out      outputs.Outputer
 }
 
-func (c *Client) NewCommand() *cobra.Command {
+func (c *Client) NewCommand() (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:     `team`,
 		Aliases: []string{"teams", "organization", "organizations"},
@@ -31,15 +31,19 @@ func (c *Client) NewCommand() *cobra.Command {
 		},
 	}
 
+	create, err := c.Create()
+	if err != nil {
+		return nil, err
+	}
 	cmd.AddCommand(
 		c.Get(),
 		c.List(),
-		c.Create(),
+		create,
 		c.Delete(),
 		c.Update(),
 	)
 
-	return cmd
+	return cmd, nil
 }
 
 type Servicer interface {

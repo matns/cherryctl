@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra/doc"
 )
 
-func NewCommand() *cobra.Command {
+func NewCommand() (*cobra.Command, error) {
 	return &cobra.Command{
 		Use:   `docs <destination>`,
 		Short: "Generate a local version of the CLI documentation.",
@@ -25,5 +25,5 @@ func NewCommand() *cobra.Command {
 
 			return doc.GenMarkdownTree(cmd.Parent(), dest)
 		},
-	}
+	}, nil
 }

@@ -14,7 +14,7 @@ type Client struct {
 	Out             outputs.Outputer
 }
 
-func (c *Client) NewCommand() *cobra.Command {
+func (c *Client) NewCommand() (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:     `ssh-key`,
 		Aliases: []string{"sshkey", "sshkeys", "ssh-keys"},
@@ -33,15 +33,25 @@ func (c *Client) NewCommand() *cobra.Command {
 		},
 	}
 
+	create, err := c.Create()
+	if err != nil {
+		return nil, err
+	}
+
+	update, err := c.Update()
+	if err != nil {
+		return nil, err
+	}
+
 	cmd.AddCommand(
 		c.Get(),
 		c.List(),
-		c.Create(),
-		c.Update(),
+		create,
+		update,
 		c.Delete(),
 	)
 
-	return cmd
+	return cmd, nil
 }
 
 type Servicer interface {

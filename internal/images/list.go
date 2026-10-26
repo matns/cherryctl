@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) List() *cobra.Command {
+func (c *Client) List() (*cobra.Command, error) {
 	var plan string
 	imageGetCmd := &cobra.Command{
 		Use:     `list --plan <plan_slug>`,
@@ -46,7 +46,10 @@ func (c *Client) List() *cobra.Command {
 
 	imageGetCmd.Flags().StringVarP(&plan, "plan", "", "", "The Slug or ID of a plan.")
 
-	imageGetCmd.MarkFlagRequired("plan")
+	err := imageGetCmd.MarkFlagRequired("plan")
+	if err != nil {
+		return nil, err
+	}
 
-	return imageGetCmd
+	return imageGetCmd, nil
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Create() *cobra.Command {
+func (c *Client) Create() (*cobra.Command, error) {
 	var (
 		teamID int
 		bgp    bool
@@ -48,8 +48,15 @@ func (c *Client) Create() *cobra.Command {
 	projectCreateCmd.Flags().BoolVarP(&bgp, "bgp", "b", false, "Enable BGP support.")
 	projectCreateCmd.Flags().StringVarP(&name, "name", "", "", "Project name.")
 
-	projectCreateCmd.MarkFlagRequired("team-id")
-	projectCreateCmd.MarkFlagRequired("name")
+	err := projectCreateCmd.MarkFlagRequired("team-id")
+	if err != nil {
+		return nil, err
+	}
 
-	return projectCreateCmd
+	err = projectCreateCmd.MarkFlagRequired("name")
+	if err != nil {
+		return nil, err
+	}
+
+	return projectCreateCmd, nil
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) List() *cobra.Command {
+func (c *Client) List() (*cobra.Command, error) {
 	var projectID int
 	var types []string
 	ipListCmd := &cobra.Command{
@@ -45,7 +45,10 @@ func (c *Client) List() *cobra.Command {
 	ipListCmd.Flags().IntVarP(&projectID, "project-id", "p", 0, "The project's ID.")
 	ipListCmd.Flags().StringSliceVarP(&types, "type", "", []string{}, `Comma separated list of available IP addresses types (subnet,primary-ip,floating-ip,private-ip)`)
 
-	ipListCmd.MarkFlagRequired("project-id")
+	err := ipListCmd.MarkFlagRequired("project-id")
+	if err != nil {
+		return nil, err
+	}
 
-	return ipListCmd
+	return ipListCmd, err
 }

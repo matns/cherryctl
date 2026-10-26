@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Create() *cobra.Command {
+func (c *Client) Create() (*cobra.Command, error) {
 	var (
 		projectID      int
 		region         string
@@ -92,8 +92,14 @@ func (c *Client) Create() *cobra.Command {
 
 	ipCreateCmd.MarkFlagsMutuallyExclusive("target-hostname", "target-id", "target-ip-id")
 
-	ipCreateCmd.MarkFlagRequired("project-id")
-	ipCreateCmd.MarkFlagRequired("region")
+	err := ipCreateCmd.MarkFlagRequired("project-id")
+	if err != nil {
+		return nil, err
+	}
+	err = ipCreateCmd.MarkFlagRequired("region")
+	if err != nil {
+		return nil, err
+	}
 
-	return ipCreateCmd
+	return ipCreateCmd, nil
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Create() *cobra.Command {
+func (c *Client) Create() (*cobra.Command, error) {
 	var (
 		currency       string = "EUR"
 		name, teamType string
@@ -49,8 +49,15 @@ func (c *Client) Create() *cobra.Command {
 	teamCreateCmd.Flags().StringVarP(&teamType, "type", "", "", "Team type, available options: personal, business.")
 	teamCreateCmd.Flags().StringVarP(&currency, "currency", "", "", "Team currency, available otions: EUR, USD.")
 
-	teamCreateCmd.MarkFlagRequired("type")
-	teamCreateCmd.MarkFlagRequired("name")
+	err := teamCreateCmd.MarkFlagRequired("type")
+	if err != nil {
+		return nil, err
+	}
 
-	return teamCreateCmd
+	err = teamCreateCmd.MarkFlagRequired("name")
+	if err != nil {
+		return nil, err
+	}
+
+	return teamCreateCmd, nil
 }

@@ -14,7 +14,7 @@ type Client struct {
 	Out           outputs.Outputer
 }
 
-func (c *Client) NewCommand() *cobra.Command {
+func (c *Client) NewCommand() (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:     `ip`,
 		Aliases: []string{"ips", "ip-address", "ip-addresses"},
@@ -33,17 +33,26 @@ func (c *Client) NewCommand() *cobra.Command {
 		},
 	}
 
+	list, err := c.List()
+	if err != nil {
+		return nil, err
+	}
+
+	create, err := c.Create()
+	if err != nil {
+		return nil, err
+	}
 	cmd.AddCommand(
 		c.Get(),
-		c.List(),
-		c.Create(),
+		list,
+		create,
 		c.Update(),
 		c.Assign(),
 		c.Unassign(),
 		c.Delete(),
 	)
 
-	return cmd
+	return cmd, nil
 }
 
 type Servicer interface {

@@ -36,7 +36,7 @@ type configFormat struct {
 	TeamID    int    `yaml:"team-id,omitempty"`
 }
 
-func (c *Client) NewCommand() *cobra.Command {
+func (c *Client) NewCommand() (*cobra.Command, error) {
 	// initCmd represents a command that, when run, generates a
 	// set of initironment variables, for use in shell initironments
 	initCmd := &cobra.Command{
@@ -116,7 +116,7 @@ The configuration directory path can be changed with the CHERRY_CONFIG environme
 		},
 	}
 
-	return initCmd
+	return initCmd, nil
 }
 
 func (c *Client) readAPIKey() (string, error) {

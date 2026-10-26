@@ -10,7 +10,7 @@ type Command struct {
 	Deps
 }
 
-func (c *Command) CobraCommand() *cobra.Command {
+func (c *Command) CobraCommand() (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:     `plan`,
 		Aliases: []string{"plans"},
@@ -18,11 +18,15 @@ func (c *Command) CobraCommand() *cobra.Command {
 		Long:    "Plan operations: get, list.",
 	}
 
+	list, err := c.list()
+	if err != nil {
+		return nil, err
+	}
 	cmd.AddCommand(
-		c.list(),
+		list,
 	)
 
-	return cmd
+	return cmd, nil
 }
 
 type Deps interface {

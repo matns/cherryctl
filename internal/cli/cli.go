@@ -87,7 +87,7 @@ func (c *Client) Format() outputs.Format {
 	return format
 }
 
-func (c *Client) NewCommand() *cobra.Command {
+func (c *Client) NewCommand() (*cobra.Command, error) {
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd := &cobra.Command{
 		Use:               "cherryctl",
@@ -111,8 +111,15 @@ func (c *Client) NewCommand() *cobra.Command {
 	// `token` is defined in a config file AND `CHERRY_AUTH_TOKEN` is set.
 	//
 	// This will result in an error, because viper merges config sources.
-	rootCmd.PersistentFlags().MarkDeprecated("token", "use '--api-key' instead.")
-	rootCmd.PersistentFlags().MarkDeprecated("auth-token", "use '--api-key' instead.")
+	err := rootCmd.PersistentFlags().MarkDeprecated("token", "use '--api-key' instead.")
+	if err != nil {
+		return nil, err
+	}
+
+	err = rootCmd.PersistentFlags().MarkDeprecated("auth-token", "use '--api-key' instead.")
+	if err != nil {
+		return nil, err
+	}
 
 	rootCmd.PersistentFlags().StringVar(&c.configPath, "config", "", "Path to configuration file directory. The CHERRY_CONFIG environment variable can be used as well.")
 	rootCmd.PersistentFlags().StringVar(&c.context, "context", DefaultContext, "Specify a custom context name")
@@ -122,7 +129,7 @@ func (c *Client) NewCommand() *cobra.Command {
 
 	rootCmd.Version = c.Version
 	c.rootCmd = rootCmd
-	return c.rootCmd
+	return c.rootCmd, nil
 }
 
 func (c *Client) Config(cmd *cobra.Command) *viper.Viper {

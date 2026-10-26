@@ -14,7 +14,7 @@ type Client struct {
 	Out           outputs.Outputer
 }
 
-func (c *Client) NewCommand() *cobra.Command {
+func (c *Client) NewCommand() (*cobra.Command, error) {
 	cmd := &cobra.Command{
 		Use:     `backup`,
 		Aliases: []string{"backups"},
@@ -33,20 +33,35 @@ func (c *Client) NewCommand() *cobra.Command {
 		},
 	}
 
+	create, err := c.Create()
+	if err != nil {
+		return nil, err
+	}
+
+	list, err := c.List()
+	if err != nil {
+		return nil, err
+	}
+
+	updateMethod, err := c.UpdateMethod()
+	if err != nil {
+		return nil, err
+	}
+
 	cmd.AddCommand(
 		c.Plans(),
 		c.Get(),
-		c.List(),
-		c.Create(),
+		list,
+		create,
 		c.Update(),
 		c.Upgrade(),
 		c.Methods(),
 		c.MethodsWhitelist(),
-		c.UpdateMethod(),
+		updateMethod,
 		c.Delete(),
 	)
 
-	return cmd
+	return cmd, nil
 }
 
 type Servicer interface {

@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Create() *cobra.Command {
+func (c *Client) Create() (*cobra.Command, error) {
 	var (
 		label     string
 		publicKey string
@@ -45,8 +45,15 @@ func (c *Client) Create() *cobra.Command {
 	sshKeyCreateCmd.Flags().StringVarP(&label, "label", "", "", "Label of the SSH key.")
 	sshKeyCreateCmd.Flags().StringVarP(&publicKey, "key", "", "", "Public SSH key string.")
 
-	sshKeyCreateCmd.MarkFlagRequired("label")
-	sshKeyCreateCmd.MarkFlagRequired("key")
+	err := sshKeyCreateCmd.MarkFlagRequired("label")
+	if err != nil {
+		return nil, err
+	}
 
-	return sshKeyCreateCmd
+	err = sshKeyCreateCmd.MarkFlagRequired("key")
+	if err != nil {
+		return nil, err
+	}
+
+	return sshKeyCreateCmd, nil
 }

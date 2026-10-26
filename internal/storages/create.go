@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Create() *cobra.Command {
+func (c *Client) Create() (*cobra.Command, error) {
 	var (
 		projectID   int
 		description string
@@ -51,9 +51,20 @@ func (c *Client) Create() *cobra.Command {
 	storageCreateCmd.Flags().StringVarP(&region, "region", "", "", "Slug of the region.")
 	storageCreateCmd.Flags().StringVarP(&description, "description", "", "", "Storage description.")
 
-	storageCreateCmd.MarkFlagRequired("project-id")
-	storageCreateCmd.MarkFlagRequired("size")
-	storageCreateCmd.MarkFlagRequired("region")
+	err := storageCreateCmd.MarkFlagRequired("project-id")
+	if err != nil {
+		return nil, err
+	}
 
-	return storageCreateCmd
+	err = storageCreateCmd.MarkFlagRequired("size")
+	if err != nil {
+		return nil, err
+	}
+
+	err = storageCreateCmd.MarkFlagRequired("region")
+	if err != nil {
+		return nil, err
+	}
+
+	return storageCreateCmd, nil
 }
