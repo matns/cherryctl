@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Upgrade() *cobra.Command {
+func (c *Client) Upgrade() (*cobra.Command, error) {
 	var (
 		backupID int
 		plan     string
@@ -48,5 +48,5 @@ func (c *Client) Upgrade() *cobra.Command {
 
 	backupUpgradeCmd.Flags().StringVarP(&plan, "plan", "", "", "Backup storage plan slug.")
 
-	return backupUpgradeCmd
+	return backupUpgradeCmd, nil
 }

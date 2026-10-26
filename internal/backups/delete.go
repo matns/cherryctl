@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Delete() *cobra.Command {
+func (c *Client) Delete() (*cobra.Command, error) {
 	var storageID int
 	var force bool
 	deleteBackupCmd := &cobra.Command{
@@ -21,7 +21,7 @@ func (c *Client) Delete() *cobra.Command {
   cherryctl backup delete 12345
   >
   ✔ Are you sure you want to delete backup storage 12345: y
-  		
+
   # Deletes a storage, skipping confirmation:
   cherryctl backup delete 12345 -f`,
 
@@ -56,5 +56,5 @@ func (c *Client) Delete() *cobra.Command {
 
 	deleteBackupCmd.Flags().BoolVarP(&force, "force", "f", false, "Skips confirmation for the backup storage deletion.")
 
-	return deleteBackupCmd
+	return deleteBackupCmd, nil
 }

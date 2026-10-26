@@ -33,7 +33,12 @@ func (c *Client) NewCommand() (*cobra.Command, error) {
 		},
 	}
 
-	create, err := c.Create()
+	plans, err := c.Plans()
+	if err != nil {
+		return nil, err
+	}
+
+	get, err := c.Get()
 	if err != nil {
 		return nil, err
 	}
@@ -43,22 +48,52 @@ func (c *Client) NewCommand() (*cobra.Command, error) {
 		return nil, err
 	}
 
+	create, err := c.Create()
+	if err != nil {
+		return nil, err
+	}
+
+	update, err := c.Update()
+	if err != nil {
+		return nil, err
+	}
+
+	upgrade, err := c.Upgrade()
+	if err != nil {
+		return nil, err
+	}
+
+	methods, err := c.Methods()
+	if err != nil {
+		return nil, err
+	}
+
+	methodsWhitelist, err := c.MethodsWhitelist()
+	if err != nil {
+		return nil, err
+	}
+
 	updateMethod, err := c.UpdateMethod()
 	if err != nil {
 		return nil, err
 	}
 
+	delete, err := c.Delete()
+	if err != nil {
+		return nil, err
+	}
+
 	cmd.AddCommand(
-		c.Plans(),
-		c.Get(),
+		plans,
+		get,
 		list,
 		create,
-		c.Update(),
-		c.Upgrade(),
-		c.Methods(),
-		c.MethodsWhitelist(),
+		update,
+		upgrade,
+		methods,
+		methodsWhitelist,
 		updateMethod,
-		c.Delete(),
+		delete,
 	)
 
 	return cmd, nil

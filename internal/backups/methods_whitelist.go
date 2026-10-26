@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) MethodsWhitelist() *cobra.Command {
+func (c *Client) MethodsWhitelist() (*cobra.Command, error) {
 	var backupID int
 	servicesWhitelistCmd := &cobra.Command{
 		Use:     `methods-whitelist <backup_ID>`,
@@ -43,5 +43,5 @@ func (c *Client) MethodsWhitelist() *cobra.Command {
 		},
 	}
 
-	return servicesWhitelistCmd
+	return servicesWhitelistCmd, nil
 }

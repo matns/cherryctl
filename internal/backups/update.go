@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Update() *cobra.Command {
+func (c *Client) Update() (*cobra.Command, error) {
 	var (
 		backupID int
 		plan     string
@@ -23,7 +23,7 @@ func (c *Client) Update() *cobra.Command {
 		Long:  "Update the backup user password or SSH key. Passwords are used in the FTP and SMB protocols, while SSH keys are used in BORG.",
 		Example: `  # Update backup storage password and SSH key:
   cherryctl backup update 12345 --password somePassword --ssh-key  "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC6ec8eT..."
-  
+
   # Update backup storage user password:
   cherryctl backup update 12345 --password somePassword`,
 
@@ -56,5 +56,5 @@ func (c *Client) Update() *cobra.Command {
 	backupUpdateCmd.Flags().StringVarP(&password, "password", "", "", "Backup storage user password.")
 	backupUpdateCmd.Flags().StringVarP(&sshKey, "ssh-key", "", "", "Plain SSH key which will be stored in the backup service.")
 
-	return backupUpdateCmd
+	return backupUpdateCmd, nil
 }

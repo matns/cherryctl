@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Plans() *cobra.Command {
+func (c *Client) Plans() (*cobra.Command, error) {
 	backupPlansCmd := &cobra.Command{
 		Use:     `plans`,
 		Aliases: []string{"plan"},
@@ -43,5 +43,5 @@ func (c *Client) Plans() *cobra.Command {
 		},
 	}
 
-	return backupPlansCmd
+	return backupPlansCmd, nil
 }

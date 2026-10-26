@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Methods() *cobra.Command {
+func (c *Client) Methods() (*cobra.Command, error) {
 	var backupID int
 	servicesListCmd := &cobra.Command{
 		Use:     `methods <backup_ID>`,
@@ -44,5 +44,5 @@ func (c *Client) Methods() *cobra.Command {
 		},
 	}
 
-	return servicesListCmd
+	return servicesListCmd, nil
 }
