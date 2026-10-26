@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) List() *cobra.Command {
+func (c *Client) List() (*cobra.Command, error) {
 	regionListCmd := &cobra.Command{
 		Use:   `list`,
 		Short: "Retrieves list of regions.",
@@ -36,5 +36,5 @@ func (c *Client) List() *cobra.Command {
 		},
 	}
 
-	return regionListCmd
+	return regionListCmd, nil
 }

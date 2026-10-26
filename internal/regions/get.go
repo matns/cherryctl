@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Get() *cobra.Command {
+func (c *Client) Get() (*cobra.Command, error) {
 	var regionID string
 	regionGetCmd := &cobra.Command{
 		Use:   `get {ID | SLUG}`,
@@ -36,5 +36,5 @@ func (c *Client) Get() *cobra.Command {
 		},
 	}
 
-	return regionGetCmd
+	return regionGetCmd, nil
 }
