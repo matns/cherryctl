@@ -1,14 +1,15 @@
 package sshkeys
 
 import (
-	"github.com/cherryservers/cherrygo/v4"
 	"strconv"
+
+	"github.com/cherryservers/cherrygo/v4"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) List() *cobra.Command {
+func (c *Client) List() (*cobra.Command, error) {
 	var projectID int
 	sshListCmd := &cobra.Command{
 		Use:   `list [-p <project_id>]`,
@@ -47,5 +48,5 @@ func (c *Client) List() *cobra.Command {
 
 	sshListCmd.Flags().IntVarP(&projectID, "project-id", "p", 0, "The project's ID.")
 
-	return sshListCmd
+	return sshListCmd, nil
 }

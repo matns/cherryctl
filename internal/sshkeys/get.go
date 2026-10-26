@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Get() *cobra.Command {
+func (c *Client) Get() (*cobra.Command, error) {
 	var sshKeyID int
 	sshGetCmd := &cobra.Command{
 		Use:   `get ID`,
@@ -38,5 +38,5 @@ func (c *Client) Get() *cobra.Command {
 		},
 	}
 
-	return sshGetCmd
+	return sshGetCmd, nil
 }

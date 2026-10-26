@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Delete() *cobra.Command {
+func (c *Client) Delete() (*cobra.Command, error) {
 	var sshKeyID int
 	var force bool
 	deleteSSHkeyCmd := &cobra.Command{
@@ -19,7 +19,7 @@ func (c *Client) Delete() *cobra.Command {
   cherryctl shh-key delete -i 12345
   >
   ✔ Are you sure you want to delete SSH key 12345: y
-  		
+
   # Deletes a server, skipping confirmation:
   cherryctl shh-key delete -f -i 12345`,
 
@@ -51,7 +51,10 @@ func (c *Client) Delete() *cobra.Command {
 	deleteSSHkeyCmd.Flags().IntVarP(&sshKeyID, "ssh-key-id", "i", 0, "ID of the SSH key.")
 	deleteSSHkeyCmd.Flags().BoolVarP(&force, "force", "f", false, "Skips confirmation for the SSH key deletion.")
 
-	_ = deleteSSHkeyCmd.MarkFlagRequired("ssh-key-id")
+	err := deleteSSHkeyCmd.MarkFlagRequired("ssh-key-id")
+	if err != nil {
+		return nil, err
+	}
 
-	return deleteSSHkeyCmd
+	return deleteSSHkeyCmd, nil
 }
