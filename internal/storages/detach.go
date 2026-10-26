@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Detach() *cobra.Command {
+func (c *Client) Detach() (*cobra.Command, error) {
 	var (
 		storageID int
 	)
@@ -38,5 +38,5 @@ func (c *Client) Detach() *cobra.Command {
 		},
 	}
 
-	return storageDetachCmd
+	return storageDetachCmd, nil
 }

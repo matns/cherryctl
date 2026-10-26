@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Attach() *cobra.Command {
+func (c *Client) Attach() (*cobra.Command, error) {
 	var (
 		storageID      int
 		serverID       int
@@ -69,5 +69,5 @@ func (c *Client) Attach() *cobra.Command {
 
 	storageAttachCmd.MarkFlagsMutuallyExclusive("server-id", "server-hostname")
 
-	return storageAttachCmd
+	return storageAttachCmd, nil
 }

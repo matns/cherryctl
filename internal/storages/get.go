@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Get() *cobra.Command {
+func (c *Client) Get() (*cobra.Command, error) {
 	var storageID int
 	storagesGetCmd := &cobra.Command{
 		Use:   `get ID`,
@@ -40,5 +40,5 @@ func (c *Client) Get() *cobra.Command {
 		},
 	}
 
-	return storagesGetCmd
+	return storagesGetCmd, nil
 }

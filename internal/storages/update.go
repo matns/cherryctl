@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Update() *cobra.Command {
+func (c *Client) Update() (*cobra.Command, error) {
 	var (
 		storageID   int
 		size        int
@@ -51,5 +51,5 @@ func (c *Client) Update() *cobra.Command {
 	storageUpdateCmd.Flags().IntVarP(&size, "size", "", 0, "Storage volume size in gigabytes. Value must be greater than current volume size.")
 	storageUpdateCmd.Flags().StringVarP(&description, "description", "", "", "Storage description.")
 
-	return storageUpdateCmd
+	return storageUpdateCmd, nil
 }
