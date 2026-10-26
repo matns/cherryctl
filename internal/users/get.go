@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Get() *cobra.Command {
+func (c *Client) Get() (*cobra.Command, error) {
 	var userID int
 	userGetCmd := &cobra.Command{
 		Use:   `get ID`,
@@ -53,5 +53,5 @@ func (c *Client) Get() *cobra.Command {
 		},
 	}
 
-	return userGetCmd
+	return userGetCmd, nil
 }

@@ -31,8 +31,12 @@ func (c *Client) NewCommand() (*cobra.Command, error) {
 		},
 	}
 
+	get, err := c.Get()
+	if err != nil {
+		return nil, err
+	}
 	cmd.AddCommand(
-		c.Get(),
+		get,
 	)
 
 	return cmd, nil
