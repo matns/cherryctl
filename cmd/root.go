@@ -47,7 +47,10 @@ func NewCli() (*Cli, error) {
 	rootCmd.DisableSuggestions = false
 	cli.MainCmd = rootCmd
 
-	cli.RegisterCommands(rootClient)
+	err = cli.RegisterCommands(rootClient)
+	if err != nil {
+		return nil, err
+	}
 
 	cobra.OnInitialize(
 		func() {
