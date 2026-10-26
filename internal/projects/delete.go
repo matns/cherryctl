@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Delete() *cobra.Command {
+func (c *Client) Delete() (*cobra.Command, error) {
 	var projectID int
 	var force bool
 	deleteProjectCmd := &cobra.Command{
@@ -20,7 +20,7 @@ func (c *Client) Delete() *cobra.Command {
   cherryctl project delete 12345
   >
   ✔ Are you sure you want to delete project 12345: y
-  		
+
   # Deletes a project, skipping confirmation:
   cherryctl project delete 12345 -f`,
 
@@ -59,5 +59,5 @@ func (c *Client) Delete() *cobra.Command {
 	deleteProjectCmd.Flags().IntVarP(&projectID, "project-id", "p", 0, "The ID of a project.")
 	deleteProjectCmd.Flags().BoolVarP(&force, "force", "f", false, "Skips confirmation for the project deletion.")
 
-	return deleteProjectCmd
+	return deleteProjectCmd, nil
 }

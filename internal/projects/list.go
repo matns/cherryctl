@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) List() *cobra.Command {
+func (c *Client) List() (*cobra.Command, error) {
 	var teamID int
 	projectListCmd := &cobra.Command{
 		Use:   `list -t <team_id>`,
@@ -42,7 +42,11 @@ func (c *Client) List() *cobra.Command {
 	}
 
 	projectListCmd.Flags().IntVarP(&teamID, "team-id", "t", 0, "The team's ID.")
-	_ = projectListCmd.MarkFlagRequired("team-id")
 
-	return projectListCmd
+	err := projectListCmd.MarkFlagRequired("team-id")
+	if err != nil {
+		return nil, err
+	}
+
+	return projectListCmd, nil
 }

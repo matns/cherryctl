@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Get() *cobra.Command {
+func (c *Client) Get() (*cobra.Command, error) {
 	var projectID int
 	projectGetCmd := &cobra.Command{
 		Use:   `get ID`,
@@ -48,5 +48,5 @@ func (c *Client) Get() *cobra.Command {
 
 	projectGetCmd.Flags().IntVarP(&projectID, "project-id", "p", 0, "The project's ID.")
 
-	return projectGetCmd
+	return projectGetCmd, nil
 }

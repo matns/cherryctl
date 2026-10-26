@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Update() *cobra.Command {
+func (c *Client) Update() (*cobra.Command, error) {
 	var (
 		projectID int
 		bgp       bool
@@ -58,5 +58,5 @@ func (c *Client) Update() *cobra.Command {
 	projectUpdateCmd.Flags().BoolVarP(&bgp, "bgp", "b", false, "True to enable BGP in a project.")
 	projectUpdateCmd.Flags().StringVarP(&name, "name", "", "", "Project name.")
 
-	return projectUpdateCmd
+	return projectUpdateCmd, nil
 }
