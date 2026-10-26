@@ -35,7 +35,7 @@ Release artifacts are checksummed with SHA256. Checksums files are signed with [
 Immutable releases are enabled for this repository.
 
 ## Binary files
-No release binaries are available in this repository. No other binaries are available in this repositroy (images, test fixtures, etc).
+No release binaries are available in this repository. No other binaries are available in this repository (images, test fixtures, etc).
 
 ## Changes
 Please open an issue or a pull request if you have any suggestions regarding this policy.
