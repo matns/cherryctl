@@ -97,7 +97,7 @@ func (cli *Cli) RegisterCommands(client *root.Client) error {
 		client: client,
 	}
 
-	register := func(cmd *cobra.Command, err error) error {
+	registerCommandIfValid := func(cmd *cobra.Command, err error) error {
 		if err != nil {
 			return err
 		}
@@ -106,56 +106,56 @@ func (cli *Cli) RegisterCommands(client *root.Client) error {
 		return nil
 	}
 
-	if err := register(docs.NewCommand()); err != nil {
+	if err := registerCommandIfValid(docs.NewCommand()); err != nil {
 		return fmt.Errorf("register docs command: %w", err)
 	}
 
-	if err := register(initPck.NewClient(client).NewCommand()); err != nil {
+	if err := registerCommandIfValid(initPck.NewClient(client).NewCommand()); err != nil {
 		return fmt.Errorf("register init command: %w", err)
 	}
 
-	if err := register(servers.NewCommand(&serverDeps{sharedDeps: shared}).CobraCommand()); err != nil {
+	if err := registerCommandIfValid(servers.NewCommand(&serverDeps{sharedDeps: shared}).CobraCommand()); err != nil {
 		return fmt.Errorf("register servers command: %w", err)
 	}
 
-	if err := register(ips.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+	if err := registerCommandIfValid(ips.NewClient(client, cli.Outputer).NewCommand()); err != nil {
 		return fmt.Errorf("register ips command: %w", err)
 	}
 
-	if err := register(storages.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+	if err := registerCommandIfValid(storages.NewClient(client, cli.Outputer).NewCommand()); err != nil {
 		return fmt.Errorf("register storages command: %w", err)
 	}
 
-	if err := register(backups.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+	if err := registerCommandIfValid(backups.NewClient(client, cli.Outputer).NewCommand()); err != nil {
 		return fmt.Errorf("register backups command: %w", err)
 	}
 
-	if err := register(regions.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+	if err := registerCommandIfValid(regions.NewClient(client, cli.Outputer).NewCommand()); err != nil {
 		return fmt.Errorf("register regions command: %w", err)
 	}
 
 	// We don't have the dependencies initialized yet, as that's done on pre-execution, so we need an injector interface.
-	if err := register(plans.NewCommand(&planDeps{sharedDeps: shared}).CobraCommand()); err != nil {
+	if err := registerCommandIfValid(plans.NewCommand(&planDeps{sharedDeps: shared}).CobraCommand()); err != nil {
 		return fmt.Errorf("register plans command: %w", err)
 	}
 
-	if err := register(projects.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+	if err := registerCommandIfValid(projects.NewClient(client, cli.Outputer).NewCommand()); err != nil {
 		return fmt.Errorf("register projects command: %w", err)
 	}
 
-	if err := register(teams.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+	if err := registerCommandIfValid(teams.NewClient(client, cli.Outputer).NewCommand()); err != nil {
 		return fmt.Errorf("register teams command: %w", err)
 	}
 
-	if err := register(sshkeys.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+	if err := registerCommandIfValid(sshkeys.NewClient(client, cli.Outputer).NewCommand()); err != nil {
 		return fmt.Errorf("register sshkeys command: %w", err)
 	}
 
-	if err := register(images.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+	if err := registerCommandIfValid(images.NewClient(client, cli.Outputer).NewCommand()); err != nil {
 		return fmt.Errorf("register images command: %w", err)
 	}
 
-	if err := register(users.NewClient(client, cli.Outputer).NewCommand()); err != nil {
+	if err := registerCommandIfValid(users.NewClient(client, cli.Outputer).NewCommand()); err != nil {
 		return fmt.Errorf("register users command: %w", err)
 	}
 
