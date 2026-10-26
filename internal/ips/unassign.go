@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Unassign() *cobra.Command {
+func (c *Client) Unassign() (*cobra.Command, error) {
 	var (
 		ipID string
 	)
@@ -42,5 +42,5 @@ func (c *Client) Unassign() *cobra.Command {
 		},
 	}
 
-	return ipDetachCmd
+	return ipDetachCmd, nil
 }

@@ -33,6 +33,11 @@ func (c *Client) NewCommand() (*cobra.Command, error) {
 		},
 	}
 
+	get, err := c.Get()
+	if err != nil {
+		return nil, err
+	}
+
 	list, err := c.List()
 	if err != nil {
 		return nil, err
@@ -42,14 +47,35 @@ func (c *Client) NewCommand() (*cobra.Command, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	update, err := c.Update()
+	if err != nil {
+		return nil, err
+	}
+
+	assign, err := c.Assign()
+	if err != nil {
+		return nil, err
+	}
+
+	unAssign, err := c.Unassign()
+	if err != nil {
+		return nil, err
+	}
+
+	delete, err := c.Delete()
+	if err != nil {
+		return nil, err
+	}
+
 	cmd.AddCommand(
-		c.Get(),
+		get,
 		list,
 		create,
-		c.Update(),
-		c.Assign(),
-		c.Unassign(),
-		c.Delete(),
+		update,
+		assign,
+		unAssign,
+		delete,
 	)
 
 	return cmd, nil

@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Update() *cobra.Command {
+func (c *Client) Update() (*cobra.Command, error) {
 	var (
 		ipID      string
 		ptrRecord string
@@ -74,5 +74,5 @@ func (c *Client) Update() *cobra.Command {
 	ipUpdateCmd.Flags().StringVarP(&aRecord, "a-record", "", "", "Relative DNS name for the IP address. Resulting FQDN will be '<relative-dns-name>.cloud.cherryservers.net' and must be globally unique.")
 	ipUpdateCmd.Flags().StringSliceVarP(&tags, "tags", "", []string{}, `Tag or list of tags for the server: --tags="key=value,env=prod".`)
 
-	return ipUpdateCmd
+	return ipUpdateCmd, nil
 }

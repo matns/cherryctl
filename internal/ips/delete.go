@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Delete() *cobra.Command {
+func (c *Client) Delete() (*cobra.Command, error) {
 	var ipID string
 	var force bool
 	deleteIpCmd := &cobra.Command{
@@ -21,7 +21,7 @@ func (c *Client) Delete() *cobra.Command {
   cherryctl ip delete 30c15082-a06e-4c43-bfc3-252616b46eba
   >
   ✔ Are you sure you want to delete IP address 30c15082-a06e-4c43-bfc3-252616b46eba: y
-  		
+
   # Deletes a server, skipping confirmation:
   cherryctl ip delete 30c15082-a06e-4c43-bfc3-252616b46eba -f`,
 
@@ -59,5 +59,5 @@ func (c *Client) Delete() *cobra.Command {
 
 	deleteIpCmd.Flags().BoolVarP(&force, "force", "f", false, "Skips confirmation for the server deletion.")
 
-	return deleteIpCmd
+	return deleteIpCmd, nil
 }

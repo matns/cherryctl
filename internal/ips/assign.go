@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func (c *Client) Assign() *cobra.Command {
+func (c *Client) Assign() (*cobra.Command, error) {
 	var (
 		ipID           string
 		projectID      int
@@ -79,5 +79,5 @@ func (c *Client) Assign() *cobra.Command {
 
 	ipAssignCmd.MarkFlagsMutuallyExclusive("target-hostname", "target-id", "target-ip-id")
 
-	return ipAssignCmd
+	return ipAssignCmd, nil
 }
