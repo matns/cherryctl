@@ -8,7 +8,7 @@ on:
       filename_third_party_licenses:
         description: ""
         value: "${{ jobs.compile-third-party-licenses.outputs.filename_third_party_licenses }}"
-
+permissions: {}
 jobs:
   compile-third-party-licenses:
     if: "github.ref_type == 'tag'"

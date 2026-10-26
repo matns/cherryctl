@@ -5,7 +5,7 @@ on:
       artifact_id_third_party_licenses:
         type: "string"
         required: true
-
+permissions: {}
 jobs:
   build-binaries:
     permissions:
