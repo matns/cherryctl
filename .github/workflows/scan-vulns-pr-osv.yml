@@ -1,11 +1,11 @@
 ---
-name: "Test: OSV on Pull Request"
+name: "Check: OSV on Pull Request"
 on:
   pull_request:
     branches: ["master"]
 permissions: {}
 jobs:
-  scan-pr:
+  test-pr-osv:
     permissions:
       actions: "read"
       security-events: "write"

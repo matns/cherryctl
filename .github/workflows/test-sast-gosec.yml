@@ -1,5 +1,5 @@
 ---
-name: "Run gosec"
+name: "Check: Gosec"
 on:
   push:
     branches:
@@ -9,7 +9,7 @@ on:
       - "master"
 permissions: {}
 jobs:
-  test-with-sast:
+  test-gosec:
     runs-on: "ubuntu-latest"
     env:
       GO111MODULE: on
