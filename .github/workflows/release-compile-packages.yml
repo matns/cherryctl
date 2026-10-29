@@ -73,6 +73,16 @@ jobs:
         run: |
           cp "${{ github.workspace }}/LICENSE.md" "$DIR/LICENSE.md"
 
+      - name: "Validate release third party licenses"
+        shell: bash
+        env:
+          ARTIFACT_ID: "${{ inputs.artifact_id_third_party_licenses }}"
+        run: |-
+          if [[ -z "$ARTIFACT_ID" ]]; then
+            echo "::error::Third party licenses artifact ID is missing"
+            exit 1
+          fi
+
       - name: "Fetch worklow third party licenses and copy into package dir"
         uses: "actions/download-artifact@v8.0.2"
         with:
