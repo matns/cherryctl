@@ -79,7 +79,6 @@ jobs:
           # pattern: "third_party_licenses-${{ github.ref_name }}"
           artifact-ids: "${{ inputs.artifact_id_third_party_licenses }}"
           path: "${{ steps.prepare.outputs.dir }}"
-          merge-multiple: true
 
       - name: "Generate checksums of package contents"
         shell: "bash"
