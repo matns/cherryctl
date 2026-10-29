@@ -14,10 +14,12 @@ jobs:
     permissions:
       contents: "read"
     uses: "$/.github/workflows/release-compile-third-party-licenses.yml"
+
   compile-release-notes:
     permissions:
       contents: "read"
     uses: "$/.github/workflows/release-compile-notes.yml"
+
   compile-packages:
     needs: "compile-third-party-licenses"
     permissions:
@@ -25,6 +27,7 @@ jobs:
     uses: "$/.github/workflows/release-compile-packages.yml"
     with:
       artifact_id_third_party_licenses: ${{ needs.compile-third-party-licenses.outputs.artifact_id }}
+
   publish-release:
     if: "github.ref_type == 'tag'"
     runs-on: "ubuntu-latest"
@@ -44,6 +47,7 @@ jobs:
         uses: "actions/checkout@v7.0.1"
         with:
           fetch-depth: 0
+
       - name: "Prepare"
         id: "prepare"
         shell: "bash"
@@ -51,12 +55,14 @@ jobs:
           DIST_DIR="${{ github.workspace }}/dist"
           mkdir -p "$DIST_DIR"
           echo "dist_dir=$DIST_DIR" >> "$GITHUB_OUTPUT"
+
       - name: "Fetch worklow package artifacts"
         uses: "actions/download-artifact@v8.0.2"
         with:
           pattern: "release-tarballs-${{ github.ref_name }}-*" # fetch all targets
           path: "${{ steps.prepare.outputs.dist_dir }}"
           merge-multiple: true
+
       - name: "Fetch release notes"
         id: "fetch-release-notes"
         uses: "actions/download-artifact@v8.0.2"
@@ -64,10 +70,12 @@ jobs:
           artifact-ids: "${{ needs.compile-release-notes.outputs.artifact_id_release_notes }}"
           path: "${{ github.workspace }}"
           merge-multiple: true
+
       - name: "Set up anchore/syft" # v1.54.1
         shell: "bash"
         run: |
           go install github.com/anchore/syft/cmd/syft@b254e6d92f28c3868a755f62fb3ca8f26e9fee76
+
       - name: "Generate repository source SBOM"
         shell: "bash"
         env:
@@ -83,17 +91,20 @@ jobs:
           --source-name "$SOURCE_NAME" \
           --source-version "$GITHUB_REF_NAME" \
           -o cyclonedx-json="$DIST_DIR/$SOURCE_SBOM_NAME.cdx.json"
+
       - name: "Generate checksums of the release"
         shell: "bash"
         working-directory: "${{ steps.prepare.outputs.dist_dir }}"
         run: |
           sha256sum -- * > $CHECKSUMS_FILE
+
       - name: "Generate build provenance attestation"
         id: "attest"
         uses: "actions/attest@v4.1.0"
         with:
           subject-checksums: "${{ steps.prepare.outputs.dist_dir }}/${{ env.CHECKSUMS_FILE }}"
           show-summary: true
+
       - name: Set up sigstore/cosign-installer
         uses: sigstore/cosign-installer@v4.1.2
       - name: "Sign checksums with sigstore"
@@ -102,6 +113,7 @@ jobs:
           DIST_DIR: "${{ steps.prepare.outputs.dist_dir }}"
         run: |
           cosign sign-blob "$DIST_DIR/$CHECKSUMS_FILE" --bundle "$DIST_DIR/$CHECKSUMS_FILE.sigstore.json" --yes
+
       - name: "Create release"
         shell: "bash"
         env:
@@ -113,6 +125,7 @@ jobs:
             --title "${GITHUB_REF_NAME}" \
             --notes-file "${{ github.workspace }}/${{ needs.compile-release-notes.outputs.filename_release_notes }}" \
             --verify-tag
+
   update-homebrew-tap:
     name: "Update Homebrew Tap"
     runs-on: "ubuntu-latest"

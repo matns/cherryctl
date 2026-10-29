@@ -16,6 +16,7 @@ jobs:
     steps:
       - name: "Checkout"
         uses: "actions/checkout@v7.0.1"
+
       - name: "Run gosec"
         uses: "securego/gosec@v2.30.0"
         with:

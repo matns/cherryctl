@@ -25,6 +25,7 @@ jobs:
         uses: "actions/checkout@v7.0.1"
         with:
           fetch-depth: 0
+
       - name: "Prepare"
         id: "prepare"
         shell: "bash"
@@ -33,29 +34,34 @@ jobs:
           FILE_NAME="THIRD_PARTY_LICENSES.txt"
           echo "dir=$DIR" >> "$GITHUB_OUTPUT"
           echo "filename_third_party_licenses=$FILE_NAME" >> "$GITHUB_OUTPUT"
+
       - name: "Cache go-licenses"
         id: "cache-go-licenses"
         uses: actions/cache@v6.1.0
         with:
           path: "~/go/bin/go-licenses"
           key: go-licenses-${{ runner.os }}-${{ runner.arch }}-v2.0.1
+
       - name: "Set up Go"
         if: steps.cache-go-licenses.outputs.cache-hit != 'true'
         uses: "actions/setup-go@v7.0.0"
         with:
           #go-version-file: '${{ github.workspace }}/go.mod'
           go-version: "stable"
+
       - name: "Set up google/go-licenses" # v2.0.1
         if: steps.cache-go-licenses.outputs.cache-hit != 'true'
         shell: "bash"
         run: |
           go install github.com/google/go-licenses/v2@3e084b0caf710f7bfead967567539214f598c0a2
+
       - name: "Create third party licenses file"
         shell: "bash"
         run: |
           $(go env GOPATH)/bin/go-licenses report "${{ github.workspace }}/" \
             --ignore="$(go list -m)" \
             --template="${{ github.workspace }}/licenses.tpl" > "${{ steps.prepare.outputs.dir }}/${{ steps.prepare.outputs.filename_third_party_licenses }}"
+
       - name: "Upload workflow third party licenses file"
         id: "upload-third-party-licenses-file"
         uses: "actions/upload-artifact@v7.0.2"
