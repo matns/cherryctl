@@ -1,5 +1,5 @@
 ---
-name: "Check: YAML formatting"
+name: "Check: YAML Formatting"
 
 on:
   push:
