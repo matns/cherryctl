@@ -52,7 +52,7 @@ jobs:
         env:
           GOOS: "${{ matrix.GOOS }}"
           GOARCH: "${{ matrix.GOARCH }}"
-          LD_FLAGS_COMMON: "${{ matrix.LD_FLAGS_COMMON}}"
+          LD_FLAGS_COMMON: "${{ env.LD_FLAGS_COMMON}}"
           LD_FLAGS_TARGET: "${{ matrix.LD_FLAGS_TARGET }}"
           MAIN_PATH: "${{ matrix.MAIN_PATH }}"
           CGO_ENABLED: "${{ matrix.CGO_ENABLED }}"
