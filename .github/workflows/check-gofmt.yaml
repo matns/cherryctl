@@ -7,7 +7,7 @@ on:
       - "**/*.go"
       - "go.mod"
       - "go.sum"
-      - ".github/workflows/gofmt.yml"
+      - ".github/workflows/check-gofmt.yml"
   pull_request:
 
 permissions: {}
