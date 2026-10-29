@@ -1,0 +1,108 @@
+---
+name: "Release: Compile Notes"
+on:
+  workflow_call:
+    outputs:
+      artifact_id_release_notes:
+        description: "Artifact ID for Release Notes"
+        value: "${{ jobs.compile-release-notes.outputs.artifact_id_release_notes }}"
+      filename_release_notes:
+        description: "File name for the specific release notes file"
+        value: "${{ jobs.compile-release-notes.outputs.filename_release_notes }}"
+
+permissions: {}
+
+env:
+  GIT_CLIFF_VERSION: "2.14.2"
+  GIT_CLIFF_SHA256: "fa21e2fc70046fcfd0e43e5e4613873ab799aff3d9dc8559c00d31b270e417d0"
+
+jobs:
+  compile-release-notes:
+    name: "compile-release-notes"
+    outputs:
+      artifact_id_release_notes: "${{ steps.upload-release-notes.outputs.artifact-id }}"
+      filename_release_notes: "${{ steps.prepare.outputs.filename_release_notes }}"
+    runs-on: "ubuntu-latest"
+    permissions:
+      contents: "read"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v7.0.1"
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: "Install git-cliff"
+        shell: "bash"
+        run: |
+          set -euo pipefail
+
+          archive="git-cliff-${GIT_CLIFF_VERSION}-x86_64-unknown-linux-musl.tar.gz"
+          url="https://github.com/orhun/git-cliff/releases/download/v${GIT_CLIFF_VERSION}/${archive}"
+
+          tmp="$(mktemp -d)"
+
+          curl \
+            --fail \
+            --location \
+            --silent \
+            --show-error \
+            --retry 3 \
+            --output "$tmp/${archive}" \
+            "$url"
+
+          printf '%s  %s\n' "${GIT_CLIFF_SHA256}" "$tmp/${archive}" | sha256sum --check --strict
+
+          tar -xzf "$tmp/${archive}" \
+            -C "$tmp" \
+            "git-cliff-${GIT_CLIFF_VERSION}/git-cliff"
+
+          tool_dir="${RUNNER_TEMP}/git-cliff-bin"
+          mkdir -p "${tool_dir}"
+
+          install -m 0755 \
+            "$tmp/git-cliff-${GIT_CLIFF_VERSION}/git-cliff" \
+            "${tool_dir}/git-cliff"
+
+          "${tool_dir}/git-cliff" --version
+
+          echo "${tool_dir}" >> "$GITHUB_PATH"
+
+      - name: "Prepare"
+        id: "prepare"
+        shell: "bash"
+        run: |
+          DIR=$(mktemp -d)
+          FILE_NAME="RELEASE_NOTES.md"
+          echo "release_notes_path=$DIR/${FILE_NAME}" >> "$GITHUB_OUTPUT"
+          echo "filename_release_notes=${FILE_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: "Ensure Checked Out Head Matches Release Tag"
+        shell: "bash"
+        run: |-
+          HEAD_SHA="$(git rev-parse --verify 'HEAD^{commit}')"
+          TAG_SHA="$(git rev-parse --verify "${GITHUB_REF}^{commit}")"
+
+          echo "::debug::HEAD_SHA is '${HEAD_SHA}'"
+          echo "::debug::TAG_SHA is '${TAG_SHA}'"
+
+          if [[ "$HEAD_SHA" != "$TAG_SHA" ]]; then
+            echo "::error::Checkout HEAD does not match the release tag"
+            exit 1
+          fi
+
+      - name: "Generate release notes with Cliff"
+        shell: "bash"
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          RELEASE_NOTES_PATH: "${{ steps.prepare.outputs.release_notes_path }}"
+        run: |
+          test -s "${GITHUB_WORKSPACE}/cliff.toml"
+          git cliff --no-exec --current --config "${GITHUB_WORKSPACE}/cliff.toml" --output "$RELEASE_NOTES_PATH"
+
+      - name: "Upload release notes"
+        id: "upload-release-notes"
+        uses: "actions/upload-artifact@v7.0.2"
+        with:
+          path: "${{ steps.prepare.outputs.release_notes_path }}"
+          archive: false
+          if-no-files-found: "error"

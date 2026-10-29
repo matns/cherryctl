@@ -1,0 +1,72 @@
+
+name: "Generate source SBOMs"
+
+on:
+  workflow_call:
+    inputs:
+      source_name:
+        required: true
+        type: "string"
+      release_tag:
+        required: true
+        type: "string"
+
+permissions: {}
+env:
+  GIT_ANCHORE_COMMIT: "173055c39e9752f7b450ea404cd1801695277426" # v1.56.0
+
+jobs:
+  generate:
+    name: "generate"
+    runs-on: "ubuntu-latest"
+    permissions:
+      contents: "read"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v7.0.1"
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: "Set up Go"
+        uses: "actions/setup-go@v7.0.0"
+        with:
+          go-version: "stable"
+          cache: false
+
+      - name: "Install Syft"
+        shell: "bash"
+        run: |-
+          set -euo pipefail
+          go install github.com/anchore/syft/cmd/syft@${GIT_ANCHORE_COMMIT}
+
+      - name: "Generate source SBOMs"
+        id: "generate"
+        shell: "bash"
+        env:
+          SOURCE_NAME: "${{ inputs.source_name }}"
+          RELEASE_TAG: "${{ inputs.release_tag }}"
+        run: |-
+          set -euo pipefail
+
+          SBOMS_DIR=$(mktemp -d)
+          echo "::debug::SBOMS_DIR: ${SBOMS_DIR}"
+
+          echo "sboms_dir=$SBOMS_DIR" >> "$GITHUB_OUTPUT"
+
+          SYFT="$(go env GOPATH)/bin/syft"
+          SBOM_NAME="${SOURCE_NAME}-${RELEASE_TAG}-source"
+
+          "$SYFT" "dir:${GITHUB_WORKSPACE}" \
+            --source-name "$SOURCE_NAME" \
+            --source-version "$RELEASE_TAG" \
+            -o "spdx-json=${SBOMS_DIR}/${SBOM_NAME}.spdx.json" \
+            -o "cyclonedx-json=${SBOMS_DIR}/${SBOM_NAME}.cdx.json"
+
+      - name: "Upload source SBOMs"
+        uses: "actions/upload-artifact@v7.0.2"
+        with:
+          name: "release-source-sboms-${{ github.sha }}"
+          path: "${{ steps.generate.outputs.sboms_dir }}"
+          if-no-files-found: error
+          retention-days: 1

@@ -1,0 +1,109 @@
+
+---
+name: "Compile: Third Party Licenses"
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        type: "string"
+        required: true
+        description: "Immutable hash of the reference"
+    outputs:
+      artifact_id_third_party_licenses:
+        description: "Artifact ID for Third Party Licenses"
+        value: "${{ jobs.compile-third-party-licenses.outputs.artifact_id_third_party_licenses }}"
+      filename_third_party_licenses:
+        description: "Filename of Third Party Licenses"
+        value: "${{ jobs.compile-third-party-licenses.outputs.filename_third_party_licenses }}"
+
+permissions: {}
+
+jobs:
+  compile-third-party-licenses:
+    name: "compile-third-party-licenses"
+    if: "github.ref_type == 'tag'"
+    runs-on: "ubuntu-latest"
+    permissions:
+      contents: "read"
+    outputs:
+      filename_third_party_licenses: "${{ steps.prepare.outputs.filename_third_party_licenses }}"
+      artifact_id_third_party_licenses: "${{ steps.upload.outputs.artifact-id }}"
+    steps:
+      - name: "Prepare"
+        id: "prepare"
+        shell: "bash"
+        run: |
+          DIR=$(mktemp -d)
+          FILE_NAME="THIRD_PARTY_LICENSES.txt"
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+          echo "filename_third_party_licenses=$FILE_NAME" >> "$GITHUB_OUTPUT"
+
+          mkdir -p "$GITHUB_WORKSPACE/checkouts"
+          PATHNAME_TARGET_REPO_CHECKOUT="$(mktemp -d "$GITHUB_WORKSPACE/checkouts/XXXXXXXXXX")"
+          echo "pathname_target_repo_checkout=${PATHNAME_TARGET_REPO_CHECKOUT}" >> "$GITHUB_OUTPUT"
+
+      - name: "Checkout"
+        uses: "actions/checkout@v7.0.1"
+        with:
+          ref: "${{ inputs.ref }}"
+          path: "${{ steps.prepare.outputs.pathname_target_repo_checkout }}"
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: "Ensure Checked Out Head Matches Release Tag"
+        shell: "bash"
+        working-directory: "${{ steps.prepare.outputs.pathname_target_repo_checkout }}"
+        run: |-
+          HEAD_SHA="$(git rev-parse --verify 'HEAD^{commit}')"
+          TAG_SHA="$(git rev-parse --verify "${GITHUB_REF}^{commit}")"
+          EVENT_SHA="$GITHUB_SHA"
+
+          echo "::debug::HEAD_SHA is '${HEAD_SHA}'"
+          echo "::debug::TAG_SHA is '${TAG_SHA}'"
+          echo "::debug::EVENT_SHA is '${EVENT_SHA}'"
+
+          if [[ "$HEAD_SHA" != "$EVENT_SHA" ]]; then
+               echo "::error::Checkout HEAD does not match the triggering commit"
+               exit 1
+          fi
+
+          if [[ "$HEAD_SHA" != "$TAG_SHA" ]]; then
+            echo "::error::Checkout HEAD does not match the release tag"
+            exit 1
+          fi
+
+      - name: "Set up Go"
+        uses: "actions/setup-go@v7.0.0"
+        with:
+          go-version: "stable"
+
+      - name: "Set up google/go-licenses" # v2.0.1
+        shell: "bash"
+        run: |
+          go install github.com/google/go-licenses/v2@3e084b0caf710f7bfead967567539214f598c0a2
+
+      - name: "Compile"
+        id: "compile"
+        shell: "bash"
+        working-directory: "${{ steps.prepare.outputs.pathname_target_repo_checkout }}"
+        env:
+          DIR: "${{ steps.prepare.outputs.dir }}"
+          FILE_NAME: "${{ steps.prepare.outputs.filename_third_party_licenses }}"
+          PATHNAME_TARGET_REPO_CHECKOUT: "${{ steps.prepare.outputs.pathname_target_repo_checkout }}"
+        # Generate the third party licenses file. Make go-licenses ignore the module itself, since license of module goes into separate file
+        run: |
+          "$(go env GOPATH)/bin/go-licenses" report "." \
+            --ignore="$(go list -m)" \
+            --template="${PATHNAME_TARGET_REPO_CHECKOUT}/licenses.tpl" \
+            > "$DIR/$FILE_NAME"
+
+          test -s "$DIR/$FILE_NAME"
+
+      - name: "Upload"
+        id: "upload"
+        uses: "actions/upload-artifact@v7.0.2"
+        with:
+          name: "third_party_licenses-${{ inputs.ref }}"
+          path: "${{ steps.prepare.outputs.dir }}/${{ steps.prepare.outputs.filename_third_party_licenses }}"
+          if-no-files-found: "error"

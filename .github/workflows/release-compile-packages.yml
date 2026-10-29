@@ -1,0 +1,165 @@
+---
+name: "Build: Compile and Assemble Packages with Go Codebase"
+on:
+  workflow_call:
+    inputs:
+      repository:
+        type: "string"
+        required: true
+        description: "Repository to build"
+      ref:
+        type: "string"
+        required: true
+        description: "Repo reference whose state to build"
+      binary_name:
+        type: "string"
+        required: true
+        description: "Name of the binary"
+      filename_license:
+        type: "string"
+        required: true
+        description: "Filename of the license file (e.g. LICENSE.md)"
+      ld_flags_variable_injectables:
+        type: "string"
+        description: "List of ld flags variable injectables"
+        default: "[]"
+      artifact_id_third_party_licenses:
+        type: "string"
+        required: true
+
+permissions: {}
+jobs:
+  build-binaries:
+    name: "build-binaries"
+    permissions:
+      contents: "read"
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - {GOOS: "linux", GOARCH: "amd64", TARGET: "linux-amd64-static", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_linux.go", runner: "ubuntu-latest"}
+          - {GOOS: "linux", GOARCH: "amd64", TARGET: "linux-amd64-gnu", CGO_ENABLED: "1",
+            # Shadow Stack Support
+            CGO_CFLAGS: "-fcf-protection=full", CGO_LDFLAGS: "-Wl,-z,shstk -Wl,-z,ibt -Wl,-z,cet-report=error", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_linux.go", runner: "ubuntu-latest"}
+          - {GOOS: "linux", GOARCH: "arm64", TARGET: "linux-arm64-static", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_linux.go", runner: "ubuntu-latest"}
+          - {GOOS: "windows", GOARCH: "amd64", TARGET: "windows-amd64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_windows.go", runner: "ubuntu-latest"}
+          - {GOOS: "windows", GOARCH: "arm64", TARGET: "windows-arm64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_windows.go", runner: "ubuntu-latest"}
+          - {GOOS: "darwin", GOARCH: "amd64", TARGET: "darwin-amd64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_darwin.go", runner: "ubuntu-latest"}
+          - {GOOS: "darwin", GOARCH: "arm64", TARGET: "darwin-arm64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_darwin.go", runner: "ubuntu-latest"}
+    env:
+      SOURCE_NAME: "${{ inputs.repository }}"
+    runs-on: "${{ matrix.runner }}"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v7.0.1"
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: "Set up Go"
+        uses: "actions/setup-go@v7.0.0"
+        with:
+          go-version-file: "${{ github.workspace }}/go.mod"
+          cache: false
+
+      - name: "Prepare"
+        id: "prepare"
+        shell: "bash"
+        run: |
+          DIR=$(mktemp -d) && echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+          DIST_DIR=$(mktemp -d) && echo "dist_dir=$DIST_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: "Prepare ld flags injectables"
+        id: "prepare-ld-flags-injectables"
+        shell: "bash"
+        env:
+          LD_FLAGS_JSON: ${{ inputs.ld_flags_variable_injectables }}
+        run: |-
+          ld_flags=$(jq -er 'if type == "array" and all(.[]; type == "string") then join(" ") else error("expected an array of strings") end' <<< "$LD_FLAGS_JSON")
+          echo "::debug::ld_flags: ${ld_flags}"
+
+          echo "ld_flags_variable_injectables=${ld_flags}" >> "$GITHUB_OUTPUT"
+
+      - name: "Build"
+        env:
+          GOOS: "${{ matrix.GOOS }}"
+          GOARCH: "${{ matrix.GOARCH }}"
+          LD_FLAGS_VARIABLE_INJECTABLES: "${{ steps.prepare-ld-flags-injectables.outputs.ld_flags_variable_injectables }}"
+          LD_FLAGS_TARGET: "${{ matrix.LD_FLAGS_TARGET }}"
+          MAIN_PATH: "${{ matrix.MAIN_PATH }}"
+          CGO_ENABLED: "${{ matrix.CGO_ENABLED }}"
+          CGO_CFLAGS: "${{ matrix.CGO_CFLAGS }}"
+          CGO_LDFLAGS: "${{ matrix.CGO_LDFLAGS }}"
+          DIR: "${{ steps.prepare.outputs.dir }}"
+          BINARY_NAME: ${{ inputs.binary_name }}
+        run: |
+          binary_name="${BINARY_NAME}"
+          if [[ "$GOOS" == "windows" ]]; then
+                binary_name="${binary_name}.exe"
+          fi
+
+          echo "::debug::Using LD_FLAGS_VARIABLE_INJECTABLES=${LD_FLAGS_VARIABLE_INJECTABLES}"
+
+          go build \
+            -trimpath \
+            -ldflags "${LD_FLAGS_VARIABLE_INJECTABLES} ${LD_FLAGS_TARGET}" \
+            -o "${DIR}/${binary_name}" \
+            "${MAIN_PATH}"
+
+      - name: "Copy license into package dir"
+        shell: "bash"
+        env:
+          DIR: "${{ steps.prepare.outputs.dir }}"
+          FILENAME_LICENSE: "${{ inputs.filename_license }}"
+        run: |
+          cp "${GITHUB_WORKSPACE}/${FILENAME_LICENSE}" "$DIR/${FILENAME_LICENSE}"
+
+      - name: "Validate release third party licenses"
+        shell: bash
+        env:
+          ARTIFACT_ID: "${{ inputs.artifact_id_third_party_licenses }}"
+        run: |-
+          if [[ -z "$ARTIFACT_ID" ]]; then
+            echo "::error::Third party licenses artifact ID is missing"
+            exit 1
+          fi
+
+      - name: "Fetch worklow third party licenses and copy into package dir"
+        uses: "actions/download-artifact@v8.0.2"
+        with:
+          # pattern: "third_party_licenses-${{ github.ref_name }}"
+          artifact-ids: "${{ inputs.artifact_id_third_party_licenses }}"
+          path: "${{ steps.prepare.outputs.dir }}"
+
+      - name: "Generate checksums of package contents"
+        shell: "bash"
+        working-directory: "${{ steps.prepare.outputs.dir }}"
+        run: |
+          sha256sum -- * > SHA256SUMS
+
+      - name: "Archive the package"
+        id: archive
+        env:
+          GOOS: "${{ matrix.GOOS }}"
+          ARCHIVE_NAME: "${{ format('{0}-{1}-{2}', inputs.binary_name, github.ref_name, matrix.TARGET) }}"
+          DIST_DIR: "${{ steps.prepare.outputs.dist_dir }}"
+          DIR: "${{ steps.prepare.outputs.dir }}"
+        shell: "bash"
+        run: |
+          if [[ "$GOOS" == "windows" ]]; then
+            ARCHIVE_PATH="$DIST_DIR/$ARCHIVE_NAME.zip"
+            (cd "$DIR" && zip -r "$ARCHIVE_PATH" .)
+          else
+            ARCHIVE_PATH="$DIST_DIR/$ARCHIVE_NAME.tar.gz"
+            tar -czf "$ARCHIVE_PATH" -C "$DIR" .
+          fi
+
+          echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: "Upload workflow artifacts"
+        uses: "actions/upload-artifact@v7.0.2"
+        with:
+          name: "release-tarballs-${{ github.ref_name }}-${{ matrix.TARGET }}"
+          path: "${{ steps.archive.outputs.archive_path }}"
+          if-no-files-found: "error"
+          compression-level: 0
