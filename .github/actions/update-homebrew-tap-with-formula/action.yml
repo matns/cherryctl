@@ -1,0 +1,137 @@
+---
+name: "Action: Update Homebrew Tap with Formula"
+description: "Publish a previously generated and tested Homebrew formula without checking out the tap"
+
+inputs:
+  binary_name:
+    required: true
+    description: "Binary/formula name (for example, cherryctl)"
+  release_tag:
+    required: true
+    description: "Release tag that triggered the workflow"
+  homebrew_repo_name:
+    required: true
+    description: "Target tap repository (for example, homebrew-cherryctl)"
+  homebrew_repo_owner:
+    required: true
+    description: "Owner of the target tap repository"
+  pathname_homebrew_formula:
+    required: true
+    description: "Target formula path in the tap repository (for example, Formula/cherryctl.rb)"
+  formula_updater_app_client_id:
+    required: true
+    description: "Client ID of the GitHub App installed on the target tap repository"
+  secret_formula_updater_app_private_key:
+    required: true
+    description: "Private key for the GitHub App"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Verify protected release tag"
+      shell: bash
+      env:
+        EVENT_NAME: "${{ github.event_name }}"
+        REF_TYPE: "${{ github.ref_type }}"
+        REF: "${{ github.ref }}"
+        REF_PROTECTED: "${{ github.ref_protected }}"
+        DELETED: "${{ github.event.deleted }}"
+        RELEASE_TAG: "${{ inputs.release_tag }}"
+        BINARY_NAME: "${{ inputs.binary_name }}"
+        HOMEBREW_REPO_NAME: "${{ inputs.homebrew_repo_name }}"
+        HOMEBREW_REPO_OWNER: "${{ inputs.homebrew_repo_owner }}"
+        PATHNAME_HOMEBREW_FORMULA: "${{ inputs.pathname_homebrew_formula }}"
+      run: |
+        set -euo pipefail
+
+        if [[ "$EVENT_NAME" != "push" ||
+              "$REF_TYPE" != "tag" ||
+              "$REF_PROTECTED" != "true" ||
+              "$DELETED" == "true" ||
+              "$REF" != "refs/tags/$RELEASE_TAG" ||
+              ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "::error::Publishing requires a protected vX.Y.Z tag push matching release_tag"
+          exit 1
+        fi
+
+        [[ "$BINARY_NAME" =~ ^[A-Za-z][A-Za-z0-9_-]*$ ]] || {
+          echo "::error::Invalid binary_name"
+          exit 1
+        }
+        [[ "$HOMEBREW_REPO_OWNER" =~ ^[A-Za-z0-9-]+$ ]] || {
+          echo "::error::Invalid homebrew_repo_owner"
+          exit 1
+        }
+        [[ "$HOMEBREW_REPO_NAME" =~ ^[A-Za-z0-9._-]+$ ]] || {
+          echo "::error::Invalid homebrew_repo_name"
+          exit 1
+        }
+        [[ "$PATHNAME_HOMEBREW_FORMULA" == "Formula/${BINARY_NAME}.rb" ]] || {
+          echo "::error::Unexpected formula destination path"
+          exit 1
+        }
+
+    - name: "Download formula artifact"
+      uses: "actions/download-artifact@v8.0.2"
+      with:
+        name: "homebrew-formula-${{ inputs.binary_name }}-${{ github.sha }}"
+        path: "${{ runner.temp }}/homebrew-formula"
+
+    - name: "Validate downloaded formula"
+      shell: bash
+      env:
+        BINARY_NAME: "${{ inputs.binary_name }}"
+        RELEASE_TAG: "${{ inputs.release_tag }}"
+        FORMULA_DIRECTORY: "${{ runner.temp }}/homebrew-formula"
+      run: |
+        set -euo pipefail
+        formula_file="${FORMULA_DIRECTORY}/${BINARY_NAME}.rb"
+        test -s "$formula_file"
+        ruby -c "$formula_file"
+        grep -Fq "/releases/download/${RELEASE_TAG}/" "$formula_file" || {
+          echo "::error::Formula does not reference the current release tag"
+          exit 1
+        }
+
+    - name: "Generate GitHub App token"
+      id: app-token
+      uses: "actions/create-github-app-token@v3.3.0"
+      with:
+        client-id: "${{ inputs.formula_updater_app_client_id }}"
+        private-key: "${{ inputs.secret_formula_updater_app_private_key }}"
+        owner: "${{ inputs.homebrew_repo_owner }}"
+        repositories: "${{ inputs.homebrew_repo_name }}"
+        permission-single-file: "write"
+
+    - name: "Update formula in Homebrew repository"
+      shell: bash
+      env:
+        GH_TOKEN: "${{ steps.app-token.outputs.token }}"
+        HOMEBREW_REPO_OWNER: "${{ inputs.homebrew_repo_owner }}"
+        HOMEBREW_REPO_NAME: "${{ inputs.homebrew_repo_name }}"
+        PATHNAME_HOMEBREW_FORMULA: "${{ inputs.pathname_homebrew_formula }}"
+        RELEASE_TAG: "${{ inputs.release_tag }}"
+        BINARY_NAME: "${{ inputs.binary_name }}"
+        FORMULA_DIRECTORY: "${{ runner.temp }}/homebrew-formula"
+      run: |-
+        set -euo pipefail
+
+        repo="${HOMEBREW_REPO_OWNER}/${HOMEBREW_REPO_NAME}"
+        formula_file="${FORMULA_DIRECTORY}/${BINARY_NAME}.rb"
+        api_path="repos/${repo}/contents/${PATHNAME_HOMEBREW_FORMULA}"
+
+        # The formula already exists in the tap; retrieve its SHA for an update.
+        sha="$(gh api "$api_path" --jq '.sha')"
+        [[ -n "$sha" && "$sha" != "null" ]] || {
+          echo "::error::Could not obtain existing formula SHA"
+          exit 1
+        }
+
+        content="$(base64 < "$formula_file" | tr -d '\n')"
+        gh api --method PUT "$api_path" \
+          -f message="chore(homebrew): update ${BINARY_NAME} to ${RELEASE_TAG}" \
+          -f content="$content" \
+          -f sha="$sha" \
+          --silent
+
+        echo "::notice::Published ${PATHNAME_HOMEBREW_FORMULA} to ${repo} for ${RELEASE_TAG}"
