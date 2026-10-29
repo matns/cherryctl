@@ -63,13 +63,22 @@ jobs:
           path: "${{ steps.prepare.outputs.dist_dir }}"
           merge-multiple: true
 
+      - name: "Validate release notes artifact ID"
+        shell: bash
+        env:
+          ARTIFACT_ID: "${{ needs.compile-release-notes.outputs.artifact_id_release_notes }}"
+        run: |-
+          if [[ -z "$ARTIFACT_ID" ]]; then
+            echo "::error::Release notes artifact ID is missing"
+            exit 1
+          fi
+
       - name: "Fetch release notes"
         id: "fetch-release-notes"
         uses: "actions/download-artifact@v8.0.2"
         with:
           artifact-ids: "${{ needs.compile-release-notes.outputs.artifact_id_release_notes }}"
           path: "${{ github.workspace }}"
-          merge-multiple: true
 
       - name: "Set up anchore/syft" # v1.54.1
         shell: "bash"
