@@ -41,6 +41,37 @@ runs:
       run: |
         echo "::add-mask::$SECRET_FORMULA_UPDATER_PRIVATE_KEY"
 
+    - name: "Validate inputs"
+      shell: bash
+      env:
+        BINARY_NAME: "${{ inputs.binary_name }}"
+        LICENSE: "${{ inputs.license }}"
+        RELEASE_TAG: "${{ inputs.release_tag }}"
+        HOMEBREW_REPO_NAME: "${{ inputs.homebrew_repo_name }}"
+        HOMEBREW_REPO_OWNER: "${{ inputs.homebrew_repo_owner }}"
+        RELEASES_REPO_OWNER: "${{ inputs.releases_repo_owner }}"
+        RELEASES_REPO_NAME: "${{ inputs.releases_repo_name }}"
+        PATHNAME_HOMEBREW_FORMULA: "${{ inputs.pathname_homebrew_formula }}"
+        FORMULA_UPDATER_APP_CLIENT_ID: "${{ inputs.formula_updater_app_client_id }}"
+        SECRET_FORMULA_UPDATER_APP_PRIVATE_KEY: "${{ inputs.secret_formula_updater_app_private_key }}"
+      run: |
+        for name in \
+          BINARY_NAME \
+          LICENSE \
+          RELEASE_TAG \
+          HOMEBREW_REPO_NAME \
+          HOMEBREW_REPO_OWNER \
+          RELEASES_REPO_OWNER \
+          RELEASES_REPO_NAME \
+          PATHNAME_HOMEBREW_FORMULA \
+          FORMULA_UPDATER_APP_CLIENT_ID \
+          SECRET_FORMULA_UPDATER_APP_PRIVATE_KEY; do
+          if [[ -z "${!name}" ]]; then
+            echo "::error::Required input $name is missing or empty"
+            exit 1
+          fi
+        done
+
     - name: "Download Release Checksums"
       shell: "bash"
       env:
