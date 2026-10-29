@@ -62,7 +62,7 @@ jobs:
         run: |
           go build \
             -trimpath \
-            -ldflags "$LDFLAGS_COMMON $LD_FLAGS_TARGET" \
+            -ldflags "$LD_FLAGS_COMMON $LD_FLAGS_TARGET" \
             -o "$DIR/$BINARY_NAME" \
             "$MAIN_PATH"
 
@@ -96,17 +96,19 @@ jobs:
         shell: "bash"
         run: |
           if [[ "$GOOS" == "windows" ]]; then
-            (cd "$DIR" && zip -r "$DIST_DIR/$ARCHIVE_NAME.zip" .)
+            ARCHIVE_PATH="$DIST_DIR/$ARCHIVE_NAME.zip"
+            (cd "$DIR" && zip -r "$ARCHIVE_PATH" .)
           else
-            tar -cvzf "$DIST_DIR/$ARCHIVE_NAME.tar.gz" -C "$DIR" .
+            ARCHIVE_PATH="$DIST_DIR/$ARCHIVE_NAME.tar.gz"
+            tar -czf "$ARCHIVE_PATH" -C "$DIR" .
           fi
+
+          echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
 
       - name: "Upload workflow artifacts"
         uses: "actions/upload-artifact@v7.0.2"
         with:
           name: "release-tarballs-${{ github.ref_name }}-${{ matrix.TARGET }}"
-          path: |
-            ${{ steps.prepare.outputs.dist_dir }}/*.tar.gz
-            ${{ steps.prepare.outputs.dist_dir }}/*.zip
+          path: "${{ steps.archive.outputs.archive_path }}"
           if-no-files-found: "error"
           compression-level: 0
