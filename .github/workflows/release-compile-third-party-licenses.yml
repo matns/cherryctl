@@ -23,7 +23,7 @@ jobs:
       contents: "read"
     outputs:
       filename_third_party_licenses: "${{ steps.prepare.outputs.filename_third_party_licenses }}"
-      artifact_id_third_party_licenses: "${{ steps.upload-third-party-licenses-file.outputs.artifact-id }}"
+      artifact_id_third_party_licenses: "${{ steps.upload.outputs.artifact-id }}"
     steps:
       - name: "Checkout"
         uses: "actions/checkout@v7.0.1"
