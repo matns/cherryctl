@@ -31,6 +31,9 @@ inputs:
   secret_formula_updater_app_private_key:
     required: true
     description: "Private key of the GitHub App authorized to make changes to Homebrew repo"
+  release_asset_id_checksums_file:
+    required: true
+    description: "Release asset id for release's checksums file"
 runs:
   using: "composite"
   steps:
@@ -54,6 +57,7 @@ runs:
         PATHNAME_HOMEBREW_FORMULA: "${{ inputs.pathname_homebrew_formula }}"
         FORMULA_UPDATER_APP_CLIENT_ID: "${{ inputs.formula_updater_app_client_id }}"
         SECRET_FORMULA_UPDATER_APP_PRIVATE_KEY: "${{ inputs.secret_formula_updater_app_private_key }}"
+        RELEASE_ASSET_ID_CHECKSUMS_FILE: "${{ inputs.release_asset_id_checksums_file }}"
       run: |
         for name in \
           BINARY_NAME \
@@ -65,29 +69,47 @@ runs:
           RELEASES_REPO_NAME \
           PATHNAME_HOMEBREW_FORMULA \
           FORMULA_UPDATER_APP_CLIENT_ID \
-          SECRET_FORMULA_UPDATER_APP_PRIVATE_KEY; do
+          SECRET_FORMULA_UPDATER_APP_PRIVATE_KEY \
+          RELEASE_ASSET_ID_CHECKSUMS_FILE; do
           if [[ -z "${!name}" ]]; then
             echo "::error::Required input $name is missing or empty"
             exit 1
           fi
         done
 
-    - name: "Download Release Checksums"
+    - name: "Check if release tag is valid"
+      shell: "bash"
+      env:
+        RELEASE_TAG: "${{ inputs.release_tag }}"
+      run: |
+        [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+          echo "Invalid release tag: $RELEASE_TAG" >&2
+          exit 1
+        }
+
+    - name: "Prepare, download release checksums, output checksums pathname"
+      id: "prepare-download-output"
       shell: "bash"
       env:
         GH_TOKEN: "${{ github.token }}"
-        RELEASE_TAG: "${{ inputs.release_tag }}"
+        RELEASE_ASSET_ID_CHECKSUMS: "${{ inputs.release_asset_id_checksums_file }}"
+        RELEASE_REPO: "${{ inputs.releases_repo_owner }}/${{ inputs.releases_repo_name }}"
       run: |
-        set -euo pipefail
+        dir=$(mktemp -d)
 
-        mkdir -p dist
+        filename="$(openssl rand -hex 32)"
+        pathname_checksums="${dir}/${filename}"
 
-        gh release download "$RELEASE_TAG" \
-          --repo "${{ inputs.releases_repo_owner }}/${{ inputs.releases_repo_name }}" \
-          --pattern "${{ inputs.binary_name }}-${RELEASE_TAG}.sha256sum" \
-          --dir dist
+        gh api "repos/${RELEASE_REPO}/releases/assets/${RELEASE_ASSET_ID_CHECKSUMS}" \
+          -H "Accept: application/octet-stream" \
+           ${pathname_checksums}
+
+        test -s "${PATHNAME_LOCAL_CHECKSUMS_FILE}"
+
+        echo "pathname_checksums="${pathname_checksums}" >> "$GITHUB_OUTPUT
 
     - name: "Generate Homebrew formula"
+      id: "generate"
       shell: "bash"
       env:
         RELEASE_TAG: "${{ inputs.release_tag }}"
@@ -96,19 +118,15 @@ runs:
 
         TAG="$RELEASE_TAG"
         VERSION="${TAG#v}"
-        CHECKSUM_FILE="dist/${{ inputs.binary_name }}-${TAG}.sha256sum"
-
-        [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
-          echo "Invalid release tag: $TAG" >&2
-          exit 1
-        }
+        PATHNAME_CHECKSUMS="${{ steps.prepare-download-output.outputs.pathname_checksums }}"
 
         checksum() {
           awk -v file="$1" '
             $2 == file { print $1; found=1; exit }
             END { if (!found) exit 1 }
-          ' "$CHECKSUM_FILE"
+          ' "${PATHNAME_CHECKSUMS}"
         }
+
         capitalize() {
           echo "${1^}"
         }
@@ -118,8 +136,11 @@ runs:
         LINUX_AMD64=$(checksum "${{ inputs.binary_name }}-${TAG}-linux-amd64-gnu.tar.gz")
         LINUX_ARM64=$(checksum "${{ inputs.binary_name }}-${TAG}-linux-arm64-static.tar.gz")
 
+
+        dir=$(mktemp -d)
+        PATHNAME_FORMULA_FILE="${dir}/${{ inputs.binary_name }}.rb"
         UPPERCASE_BINARY_NAME="$(capitalize ${{ inputs.binary_name }})"
-        cat > ${{ inputs.binary_name }}.rb <<EOF
+        cat > ${PATHNAME_FORMULA_FILE} <<EOF
         # typed: false
         # frozen_string_literal: true
 
@@ -173,8 +194,10 @@ runs:
         end
         EOF
 
-        ruby -c ${{ inputs.binary_name }}.rb
-        cat ${{ inputs.binary_name }}.rb
+        ruby -c "${PATHNAME_FORMULA_FILE}"
+        test -s "${PATHNAME_FORMULA_FILE}"
+
+        echo "pathname_formula_file=${PATHNAME_FORMULA_FILE}" >> "$GITHUB_OUTPUT"
 
     - name: "Generate GitHub App token"
       id: "app-token"
@@ -194,18 +217,22 @@ runs:
         HOMEBREW_REPO: "${{ inputs.homebrew_repo_name }}"
         PATHNAME_HOMEBREW_FORMULA: "${{ inputs.pathname_homebrew_formula }}"
         RELEASE_TAG: "${{ inputs.release_tag }}"
+        PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
+        BINARY_NAME: "${{ inputs.binary_name }}"
       run: |-
         set -euo pipefail
+        test -s "${PATHNAME_HOMEBREW_FORMULA}"
+
         REPO="$HOMEBREW_REPO_OWNER/$HOMEBREW_REPO"
         SHA=$(gh api \
           "repos/$REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
           --jq '.sha')
 
-        CONTENT=$(base64 -w0 ${{ inputs.binary_name }}.rb)
+        CONTENT=$(base64 -w0 ${PATHNAME_FORMULA_FILE})
 
         gh api \
           --method PUT \
           "repos/$REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
-          -f message="chore: update ${{ inputs.binary_name }} to $RELEASE_TAG" \
+          -f message="chore(homebrew): update ${BINARY_NAME} to $RELEASE_TAG" \
           -f content="$CONTENT" \
           -f sha="$SHA"
