@@ -101,8 +101,8 @@ runs:
         pathname_checksums="${dir}/${filename}"
 
         gh api "repos/${RELEASE_REPO}/releases/assets/${RELEASE_ASSET_ID_CHECKSUMS}" \
-          -H "Accept: application/octet-stream" >
-           ${pathname_checksums}
+          -H "Accept: application/octet-stream" \
+          > ${pathname_checksums}
 
         if [[ ! -s "$pathname_checksums" ]]; then
           echo "::error title=Download failed::Release checksums file is empty"
