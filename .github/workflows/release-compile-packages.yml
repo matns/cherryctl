@@ -9,6 +9,7 @@ on:
 permissions: {}
 jobs:
   build-binaries:
+    name: "Compile: Binary"
     permissions:
       contents: "read"
     strategy:
@@ -48,7 +49,7 @@ jobs:
           DIR=$(mktemp -d) && echo "dir=$DIR" >> "$GITHUB_OUTPUT"
           DIST_DIR=$(mktemp -d) && echo "dist_dir=$DIST_DIR" >> "$GITHUB_OUTPUT"
 
-      - name: "Build binary"
+      - name: "Build"
         env:
           GOOS: "${{ matrix.GOOS }}"
           GOARCH: "${{ matrix.GOARCH }}"
