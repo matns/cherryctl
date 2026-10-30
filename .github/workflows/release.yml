@@ -11,6 +11,7 @@ concurrency:
 permissions: {}
 jobs:
   compile-third-party-licenses:
+    name: "Compile: Third Party Licenses"
     permissions:
       contents: "read"
     uses: "$/.github/workflows/release-compile-third-party-licenses.yml"
