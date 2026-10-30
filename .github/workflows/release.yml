@@ -57,7 +57,7 @@ jobs:
           echo "dist_dir=$DIST_DIR" >> "$GITHUB_OUTPUT"
 
           FILENAME_CHECKSUMS="${{ github.event.repository.name }}-${{ github.ref_name }}.sha256sum"
-          echo "filename_checksums="${FILENAME_CHECKSUMS}" >> "$GITHUB_OUTPUT"
+          echo "filename_checksums=${FILENAME_CHECKSUMS}" >> "$GITHUB_OUTPUT"
 
       - name: "Fetch worklow package artifacts"
         uses: "actions/download-artifact@v8.0.2"
