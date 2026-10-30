@@ -170,7 +170,7 @@ jobs:
           echo "release_asset_id_checksums_file=${asset_id}" >> "$GITHUB_OUTPUT"
 
   update-homebrew-tap:
-    name: "Update Homebrew Tap"
+    name: "Deploy: Homebrew Tap"
     runs-on: "ubuntu-latest"
     needs: ["publish-release"]
     permissions:
