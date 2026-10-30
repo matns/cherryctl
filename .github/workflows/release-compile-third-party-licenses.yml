@@ -16,7 +16,7 @@ permissions: {}
 
 jobs:
   compile-third-party-licenses:
-    name: "Compile Third Party Licenses"
+    name: "Compile: Third Party Licenses"
     if: "github.ref_type == 'tag'"
     runs-on: "ubuntu-latest"
     permissions:

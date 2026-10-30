@@ -14,12 +14,12 @@ env:
   GIT_CLIFF_COMMIT: "5d996de8220d26c0cb8ff329d31791570cab262f" # v2.14.2
 jobs:
   compile-release-notes:
+    name: "Compile: Release Notes"
     if: "github.ref_type == 'tag'"
     outputs:
       artifact_id_release_notes: "${{ steps.upload-release-notes.outputs.artifact-id }}"
       filename_release_notes: "${{ steps.prepare.outputs.filename_release_notes }}"
     runs-on: "ubuntu-latest"
-    name: "Compile release notes"
     permissions:
       contents: "read"
     steps:
