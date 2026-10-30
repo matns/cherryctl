@@ -16,11 +16,13 @@ jobs:
     uses: "$/.github/workflows/release-compile-third-party-licenses.yml"
 
   compile-release-notes:
+    name: "Compile: Release Notes"
     permissions:
       contents: "read"
     uses: "$/.github/workflows/release-compile-notes.yml"
 
   compile-packages:
+    name: "Compile: Release Packages (tarballs)"
     needs: "compile-third-party-licenses"
     permissions:
       contents: "read"
@@ -29,9 +31,9 @@ jobs:
       artifact_id_third_party_licenses: "${{ needs.compile-third-party-licenses.outputs.artifact_id_third_party_licenses }}"
 
   publish-release:
+    name: "Publish: Release"
     if: "github.ref_type == 'tag'"
     runs-on: "ubuntu-latest"
-    name: "Create and publish release"
     needs: ["compile-packages", "compile-release-notes"]
     permissions:
       contents: "write"

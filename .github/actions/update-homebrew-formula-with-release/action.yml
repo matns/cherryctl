@@ -109,7 +109,7 @@ runs:
           exit 1
         fi
 
-        echo "pathname_checksums="${pathname_checksums}" >> "$GITHUB_OUTPUT
+        echo "pathname_checksums=${pathname_checksums}" >> "$GITHUB_OUTPUT
 
     - name: "Generate Homebrew formula"
       id: "generate"
