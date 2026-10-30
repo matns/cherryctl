@@ -24,13 +24,16 @@ inputs:
     type: "string"
   pathname_homebrew_formula:
     required: true
+    description: "Pathname in git repo to the Homebrew formula"
     type: "string"
   formula_updater_app_client_id:
     required: true
     description: "Client ID of the GitHub App authorized to make changes to Homebrew repo"
+    type: "string"
   secret_formula_updater_app_private_key:
     required: true
     description: "Private key of the GitHub App authorized to make changes to Homebrew repo"
+    type: "string"
   release_asset_id_checksums_file:
     required: true
     description: "Release asset id for release's checksums file"
@@ -224,13 +227,13 @@ runs:
         BINARY_NAME: "${{ inputs.binary_name }}"
       run: |-
         set -euo pipefail
-        test -s "${PATHNAME_FORMULA_FILE}"
 
         REPO="$HOMEBREW_REPO_OWNER/$HOMEBREW_REPO"
         SHA=$(gh api \
           "repos/$REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
           --jq '.sha')
 
+        test -s "${PATHNAME_TEMPLATED_FORMULA_FILE}"
         CONTENT=$(base64 -w0 ${PATHNAME_TEMPLATED_FORMULA_FILE})
 
         gh api \
