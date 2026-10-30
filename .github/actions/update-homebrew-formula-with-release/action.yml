@@ -233,9 +233,9 @@ runs:
       run: |-
         set -euo pipefail
 
-        REPO="$HOMEBREW_REPO_OWNER/$HOMEBREW_REPO"
+        repo="$HOMEBREW_REPO_OWNER/$HOMEBREW_REPO"
         SHA=$(gh api \
-          "repos/$REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
+          "repos/$repo/contents/$PATHNAME_HOMEBREW_FORMULA" \
           --jq '.sha')
 
         test -s "${PATHNAME_TEMPLATED_FORMULA_FILE}"
@@ -243,7 +243,7 @@ runs:
 
         gh api \
           --method PUT \
-          "repos/$REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
+          "repos/$repo/contents/$PATHNAME_HOMEBREW_FORMULA" \
           -f message="chore(homebrew): update ${BINARY_NAME} to $RELEASE_TAG" \
           -f content="$CONTENT" \
           -f sha="$SHA"
