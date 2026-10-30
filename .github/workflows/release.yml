@@ -165,7 +165,7 @@ jobs:
           fi
 
           echo "::notice title=Release Asset::Checksums asset ID: ${asset_id}"
-          echo "release_asset_id_checksums_file="${asset_id}" >> "$GITHUB_OUTPUT
+          echo "release_asset_id_checksums_file=${asset_id}" >> "$GITHUB_OUTPUT"
 
   update-homebrew-tap:
     name: "Update Homebrew Tap"

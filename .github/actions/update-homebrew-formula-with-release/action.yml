@@ -71,7 +71,7 @@ runs:
           FORMULA_UPDATER_APP_CLIENT_ID \
           SECRET_FORMULA_UPDATER_APP_PRIVATE_KEY \
           RELEASE_ASSET_ID_CHECKSUMS_FILE; do
-          if [[ -z "${!name}" ]]; then
+          if [[ -z "${!name-}" ]]; then
             echo "::error::Required input $name is missing or empty"
             exit 1
           fi
