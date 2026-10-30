@@ -37,6 +37,7 @@ inputs:
   release_asset_id_checksums_file:
     required: true
     description: "Release asset id for release's checksums file"
+    type: "string"
 runs:
   using: "composite"
   steps:
@@ -112,6 +113,8 @@ runs:
           exit 1
         fi
 
+        echo "::notice title=Successfully obtained Release Asset::Checksums asset ID: ${RELEASE_ASSET_ID_CHECKSUMS}"
+
         echo "pathname_checksums=${pathname_checksums}" >> "$GITHUB_OUTPUT"
 
     - name: "Generate Homebrew formula"
@@ -119,6 +122,9 @@ runs:
       shell: "bash"
       env:
         RELEASE_TAG: "${{ inputs.release_tag }}"
+        RELEASES_REPO_OWNER: "${{ inputs.releases_repo_owner }}"
+        RELEASES_REPO_NAME: "${{ inputs.releases_repo_name }}"
+        BINARY_NAME: "${{ inputs.binary_name }}"
       run: |
         set -euo pipefail
 
@@ -137,15 +143,14 @@ runs:
           echo "${1^}"
         }
 
-        DARWIN_AMD64=$(checksum "${{ inputs.binary_name }}-${TAG}-darwin-amd64.tar.gz")
-        DARWIN_ARM64=$(checksum "${{ inputs.binary_name }}-${TAG}-darwin-arm64.tar.gz")
-        LINUX_AMD64=$(checksum "${{ inputs.binary_name }}-${TAG}-linux-amd64-gnu.tar.gz")
-        LINUX_ARM64=$(checksum "${{ inputs.binary_name }}-${TAG}-linux-arm64-static.tar.gz")
-
+        DARWIN_AMD64=$(checksum "${BINARY_NAME}-${TAG}-darwin-amd64.tar.gz")
+        DARWIN_ARM64=$(checksum "${BINARY_NAME}-${TAG}-darwin-arm64.tar.gz")
+        LINUX_AMD64=$(checksum "${{BINARY_NAME}-${TAG}-linux-amd64-gnu.tar.gz")
+        LINUX_ARM64=$(checksum "${{BINARY_NAME}-${TAG}-linux-arm64-static.tar.gz")
 
         dir=$(mktemp -d)
-        PATHNAME_FORMULA_FILE="${dir}/${{ inputs.binary_name }}.rb"
-        UPPERCASE_BINARY_NAME="$(capitalize ${{ inputs.binary_name }})"
+        PATHNAME_FORMULA_FILE="${dir}/${BINARY_NAME}.rb"
+        UPPERCASE_BINARY_NAME="$(capitalize ${BINARY_NAME})"
         cat > ${PATHNAME_FORMULA_FILE} <<EOF
         # typed: false
         # frozen_string_literal: true
@@ -158,36 +163,36 @@ runs:
           license "${{ inputs.license }}" # MPL 2.0
 
           livecheck do
-            url "https://github.com/${{ inputs.releases_repo_owner }}/${{ inputs.releases_repo_name }}"
+            url "https://github.com/${RELEASES_REPO_OWNER}/${RELEASES_REPO_NAME}"
             strategy :github_latest
           end
 
           on_macos do
             if Hardware::CPU.intel?
-              url "https://github.com/${{ inputs.releases_repo_owner }}/${{ inputs.releases_repo_name }}/releases/download/${TAG}/${{ inputs.binary_name }}-${TAG}-darwin-amd64.tar.gz"
+              url "https://github.com/${RELEASES_REPO_OWNER}/${RELEASES_REPO_NAME}/releases/download/${TAG}/${BINARY_NAME}-${TAG}-darwin-amd64.tar.gz"
               sha256 "${DARWIN_AMD64}"
             end
 
             if Hardware::CPU.arm?
-              url "https://github.com/${{ inputs.releases_repo_owner }}/${{ inputs.releases_repo_name }}/releases/download/${TAG}/${{ inputs.binary_name }}-${TAG}-darwin-arm64.tar.gz"
+              url "https://github.com/${RELEASES_REPO_OWNER}/${RELEASES_REPO_NAME}/releases/download/${TAG}/${BINARY_NAME}-${TAG}-darwin-arm64.tar.gz"
               sha256 "${DARWIN_ARM64}"
             end
           end
 
           on_linux do
             if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-              url "https://github.com/${{ inputs.releases_repo_owner }}/${{ inputs.releases_repo_name }}/releases/download/${TAG}/${{ inputs.binary_name }}-${TAG}-linux-amd64-gnu.tar.gz"
+              url "https://github.com/${RELEASES_REPO_OWNER}/${RELEASES_REPO_NAME}/releases/download/${TAG}/${BINARY_NAME}-${TAG}-linux-amd64-gnu.tar.gz"
               sha256 "${LINUX_AMD64}"
             end
 
             if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-              url "https://github.com/${{ inputs.releases_repo_owner }}/${{ inputs.releases_repo_name }}/releases/download/${TAG}/${{ inputs.binary_name }}-${TAG}-linux-arm64-static.tar.gz"
+              url "https://github.com/${RELEASES_REPO_OWNER}/${RELEASES_REPO_NAME}/releases/download/${TAG}/${BINARY_NAME}-${TAG}-linux-arm64-static.tar.gz"
               sha256 "${LINUX_ARM64}"
             end
           end
 
           def install
-            bin.install "${{ inputs.binary_name }}"
+            bin.install "${BINARY_NAME}"
 
             doc.install "LICENSE.md"
             doc.install "SHA256SUMS"
@@ -195,7 +200,7 @@ runs:
           end
 
           test do
-            system "#{bin}/${{ inputs.binary_name }}", "-v"
+            system "#{bin}/${BINARY_NAME}}", "-v"
           end
         end
         EOF
