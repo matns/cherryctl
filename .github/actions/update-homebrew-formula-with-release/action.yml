@@ -220,18 +220,18 @@ runs:
         HOMEBREW_REPO: "${{ inputs.homebrew_repo_name }}"
         PATHNAME_HOMEBREW_FORMULA: "${{ inputs.pathname_homebrew_formula }}"
         RELEASE_TAG: "${{ inputs.release_tag }}"
-        PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
+        PATHNAME_TEMPLATED_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
         BINARY_NAME: "${{ inputs.binary_name }}"
       run: |-
         set -euo pipefail
-        test -s "${PATHNAME_HOMEBREW_FORMULA}"
+        test -s "${PATHNAME_FORMULA_FILE}"
 
         REPO="$HOMEBREW_REPO_OWNER/$HOMEBREW_REPO"
         SHA=$(gh api \
           "repos/$REPO/contents/$PATHNAME_HOMEBREW_FORMULA" \
           --jq '.sha')
 
-        CONTENT=$(base64 -w0 ${PATHNAME_FORMULA_FILE})
+        CONTENT=$(base64 -w0 ${PATHNAME_TEMPLATED_FORMULA_FILE})
 
         gh api \
           --method PUT \
