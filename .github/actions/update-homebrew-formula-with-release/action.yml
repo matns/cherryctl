@@ -145,8 +145,8 @@ runs:
 
         DARWIN_AMD64=$(checksum "${BINARY_NAME}-${TAG}-darwin-amd64.tar.gz")
         DARWIN_ARM64=$(checksum "${BINARY_NAME}-${TAG}-darwin-arm64.tar.gz")
-        LINUX_AMD64=$(checksum "${{BINARY_NAME}-${TAG}-linux-amd64-gnu.tar.gz")
-        LINUX_ARM64=$(checksum "${{BINARY_NAME}-${TAG}-linux-arm64-static.tar.gz")
+        LINUX_AMD64=$(checksum "${BINARY_NAME}-${TAG}-linux-amd64-gnu.tar.gz")
+        LINUX_ARM64=$(checksum "${BINARY_NAME}-${TAG}-linux-arm64-static.tar.gz")
 
         dir=$(mktemp -d)
         PATHNAME_FORMULA_FILE="${dir}/${BINARY_NAME}.rb"
