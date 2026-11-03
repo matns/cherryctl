@@ -172,7 +172,6 @@ runs:
         class ${FORMULA_NAME} < Formula
           desc "Official Cherry Servers CLI"
           homepage "https://www.cherryservers.com/"
-          version "${VERSION}"
           license "${LICENSE}" # MPL 2.0
 
           livecheck do
@@ -213,7 +212,7 @@ runs:
           end
 
           test do
-            system "#{bin}/${BINARY_NAME}", "-v"
+            system "bin/${BINARY_NAME}", "-v"
           end
         end
         EOF
