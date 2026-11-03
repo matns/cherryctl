@@ -1,3 +1,6 @@
+# This composite reusable action publishes formula files to configured Homebrew git repository
+# It inherits the buid environment declared by calling workflow.\
+# This environment should be protected, so that only authorized people may trigger this action.
 ---
 name: "Action: Update Homebrew Formula With Release"
 inputs:
@@ -41,6 +44,26 @@ inputs:
 runs:
   using: "composite"
   steps:
+
+    - name: "Verify tag push trigger"
+      # Reject:
+      # (1) bad events (workflow_dispatch, release, pull_request)
+      # (2) non tag ref types
+      # (3) deleted tags
+      # (4) ensure pushed tag matches input tag provided to action
+      shell: "bash"
+      env:
+        EVENT_NAME: "${{ github.event_name }}"
+        REF_TYPE: "${{ github.ref_type }}"
+        REF: "${{ github.ref }}"
+        DELETED: "${{ github.event.deleted }}"
+        RELEASE_TAG: "${{ inputs.release_tag }}"
+      run: |-
+        set -euo pipefail
+        if [[ "$EVENT_NAME" != "push" || "$REF_TYPE" != "tag" || "$DELETED" == "true" || "$REF" != "refs/tags/$RELEASE_TAG" ]]; then
+          echo "::error::Action requires a push to the specified release tag (check if conditions)"
+          exit 1
+        fi
     - name: "Validate inputs"
       shell: bash
       env:
@@ -244,9 +267,12 @@ runs:
     - name: "Prepare homebrew repo checkout dir"
       id: "prepare-homebrew-repo-checkout-dir"
       shell: "bash"
+      env:
+        GITHUB_WORKSPACE: "${{ github.workspace }}"
+        REPO: "${{ inputs.homebrew_repo_owner }}/${{ steps.homebrew-repo.outputs.name }}"
       run: |
-        dir=$(mktemp -d)
-        echo "pathname_homebrew_repo_checkout=${dir}" >> "${GITHUB_OUTPUT}"
+        dir="${GITHUB_WORKSPACE}/checkouts/${REPO}"
+        echo "pathname_homebrew_repo_checkout=$GITHUB_WORKSPACE/${dir}" >> "${GITHUB_OUTPUT}"
 
     - name: "Checkout Homebrew repository"
       uses: "actions/checkout@v7.0.1"
