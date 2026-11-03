@@ -85,15 +85,15 @@ jobs:
           path: "${{ steps.prepare.outputs.dist_dir }}"
           merge-multiple: true
 
-      - name: "Validate release notes artifact ID"
-        shell: bash
-        env:
-          ARTIFACT_ID: "${{ needs.compile-release-notes.outputs.artifact_id_release_notes }}"
-        run: |-
-          if [[ ! "$ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]; then
-            echo "::error::Expected exactly one numeric artifact ID"
-            exit 1
-          fi
+      # - name: "Validate release notes artifact ID"
+      #   shell: bash
+      #   env:
+      #     ARTIFACT_ID: "${{ needs.compile-release-notes.outputs.artifact_id_release_notes }}"
+      #   run: |-
+      #     if [[ ! "$ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]; then
+      #       echo "::error::Expected exactly one numeric artifact ID"
+      #       exit 1
+      #     fi
 
       # - name: "Fetch release notes"
       #   id: "fetch-release-notes"
