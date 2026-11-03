@@ -28,6 +28,8 @@ jobs:
       - name: "Checkout"
         uses: "actions/checkout@v7.0.1"
         with:
+          repository: "${{ github.repository }}"
+          ref: "${{ github.ref_name }"
           fetch-depth: 0
           persist-credentials: false
 
@@ -40,6 +42,20 @@ jobs:
 
           echo "dir=$DIR" >> "$GITHUB_OUTPUT"
           echo "filename_third_party_licenses=$FILE_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: "Ensure Checked Out Head Matches Release Tag"
+        shell: "bash"
+        run: |-
+          HEAD_SHA="$(git rev-parse --verify 'HEAD^{commit}')"
+          TAG_SHA="$(git rev-parse --verify "${GITHUB_REF}^{commit}")"
+
+          echo "::debug::HEAD_SHA is '${HEAD_SHA}'"
+          echo "::debug::TAG_SHA is '${TAG_SHA}'"
+
+          if [[ "$HEAD_SHA" != "$TAG_SHA" ]]; then
+            echo "::error::Checkout HEAD does not match the release tag"
+            exit 1
+          fi
 
       - name: "Set up Go"
         uses: "actions/setup-go@v7.0.0"

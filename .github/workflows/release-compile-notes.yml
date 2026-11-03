@@ -26,6 +26,8 @@ jobs:
       - name: "Checkout"
         uses: "actions/checkout@v7.0.1"
         with:
+          repository: "${{ github.repository }}"
+          ref: "${{ github.ref_name }"
           fetch-depth: 0
           persist-credentials: false
 
@@ -55,6 +57,7 @@ jobs:
             echo "::error::Checkout HEAD does not match the release tag"
             exit 1
           fi
+
       - name: "Generate release notes with Cliff"
         shell: "bash"
         env:
