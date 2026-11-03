@@ -42,7 +42,7 @@ jobs:
           echo "release_notes_path=$DIR/$FILE_NAME" >> "$GITHUB_OUTPUT"
           echo "filename_release_notes=$FILE_NAME" >> "$GITHUB_OUTPUT"
 
-      - name: "Ensure"
+      - name: "Ensure Checked Out Head Matches Release Tag"
         shell: "bash"
         run: |-
           HEAD_SHA="$(git rev-parse --verify 'HEAD^{commit}')"
