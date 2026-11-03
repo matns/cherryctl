@@ -42,6 +42,19 @@ jobs:
           echo "release_notes_path=$DIR/$FILE_NAME" >> "$GITHUB_OUTPUT"
           echo "filename_release_notes=$FILE_NAME" >> "$GITHUB_OUTPUT"
 
+      - name: "Ensure"
+        shell: "bash"
+        run: |-
+          HEAD_SHA="$(git rev-parse --verify 'HEAD^{commit}')"
+          TAG_SHA="$(git rev-parse --verify "${GITHUB_REF}^{commit}")"
+
+          echo "::debug::HEAD_SHA is '${HEAD_SHA}'"
+          echo "::debug::TAG_SHA is '${TAG_SHA}'"
+
+          if [[ "$HEAD_SHA" != "$TAG_SHA" ]]; then
+            echo "::error::Checkout HEAD does not match the release tag"
+            exit 1
+          fi
       - name: "Generate release notes with Cliff"
         shell: "bash"
         env:
@@ -49,7 +62,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_NOTES_PATH: "${{ steps.prepare.outputs.release_notes_path }}"
         run: |
-          git cliff --current --config "${{ github.workspace }}/cliff.toml" --output "$RELEASE_NOTES_PATH"
+          git cliff --no-exec --current --config "${{ github.workspace }}/cliff.toml" --output "$RELEASE_NOTES_PATH"
 
       - name: "Upload release notes"
         id: "upload-release-notes"
