@@ -1,11 +1,33 @@
 ---
-name: "Release: Compile packages"
+name: "Build: Compile Packages"
 on:
   workflow_call:
     inputs:
+      repository:
+        type: "string"
+        required: true
+        description: "Repository to build"
+      ref:
+        type: "string"
+        required: true
+        description: "Repo reference whose state to build"
+      binary_name:
+        type: "string"
+        required: true
+        description: "Name of the binary"
+      filename_license:
+        type: "string"
+        required: true
+        description: "Filename of the license file (e.g. LICENSE.md)"
+      ld_flags_variable_injectables:
+        type: "string"
+        required: true
+        description: "List of ld flags variable injectables (example: -X github.com/owner/repo/cmd.Version=${{ github.ref_name }})"
+        default: "[]"
       artifact_id_third_party_licenses:
         type: "string"
         required: true
+
 permissions: {}
 jobs:
   build-binaries:
@@ -26,14 +48,15 @@ jobs:
           - {GOOS: "darwin", GOARCH: "amd64", TARGET: "darwin-amd64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_darwin.go", runner: "ubuntu-latest"}
           - {GOOS: "darwin", GOARCH: "arm64", TARGET: "darwin-arm64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_darwin.go", runner: "ubuntu-latest"}
     env:
-      LD_FLAGS_COMMON: "-X github.com/cherryservers/cherryctl/cmd.Version=${{ github.ref_name }}"
-      BINARY_NAME: "cherryctl"
-      SOURCE_NAME: "${{ github.event.repository.name }}"
+      BINARY_NAME: ${{ inputs.binary_name }}
+      SOURCE_NAME: "${{ inputs.repository }}"
     runs-on: "${{ matrix.runner }}"
     steps:
       - name: "Checkout"
         uses: "actions/checkout@v7.0.1"
         with:
+          repository: "${{ inputs.repository }}"
+          ref: "${{ inputs.ref }}"
           fetch-depth: 0
           persist-credentials: false
 
@@ -41,6 +64,7 @@ jobs:
         uses: "actions/setup-go@v7.0.0"
         with:
           go-version-file: "${{ github.workspace }}/go.mod"
+          cache: false
 
       - name: "Prepare"
         id: "prepare"
@@ -49,11 +73,21 @@ jobs:
           DIR=$(mktemp -d) && echo "dir=$DIR" >> "$GITHUB_OUTPUT"
           DIST_DIR=$(mktemp -d) && echo "dist_dir=$DIST_DIR" >> "$GITHUB_OUTPUT"
 
+      - name: "Prepare ld flags injectables"
+        id: "prepare-ld-flags-injectables"
+        shell: "bash"
+        env:
+          LD_FLAGS_JSON: ${{ inputs.ld_flags_variable_injectables }}
+        run: |-
+          ld_flags=$(jq -er 'if type == "array" and all(.[]; type == "string") then join(" ") else error("expected an array of strings") end' <<< "$LD_FLAGS_JSON")
+          echo "::debug::ld_flags: ${ld_flags}"
+
+          echo "ld_flags_variable_injectables=$ld_flags" >> "$GITHUB_ENV"
       - name: "Build"
         env:
           GOOS: "${{ matrix.GOOS }}"
           GOARCH: "${{ matrix.GOARCH }}"
-          LD_FLAGS_COMMON: "${{ env.LD_FLAGS_COMMON}}"
+          LD_FLAGS_VARIABLE_INJECTABLES: "${{ steps.prepare-ld-flags-injectables.outputs.ld_flags_variable_injectables }}"
           LD_FLAGS_TARGET: "${{ matrix.LD_FLAGS_TARGET }}"
           MAIN_PATH: "${{ matrix.MAIN_PATH }}"
           CGO_ENABLED: "${{ matrix.CGO_ENABLED }}"
@@ -68,16 +102,17 @@ jobs:
 
           go build \
             -trimpath \
-            -ldflags "${LD_FLAGS_COMMON} ${LD_FLAGS_TARGET}" \
+            -ldflags "${LD_FLAGS_VARIABLE_INJECTABLES} ${LD_FLAGS_TARGET}" \
             -o "${DIR}/${binary_name}" \
             "${MAIN_PATH}"
 
-      - name: "Copy cherryctl license into package dir"
+      - name: "Copy license into package dir"
         shell: "bash"
         env:
           DIR: "${{ steps.prepare.outputs.dir }}"
+          FILENAME_LICENSE: "${{ inputs.filename_license }}"
         run: |
-          cp "${{ github.workspace }}/LICENSE.md" "$DIR/LICENSE.md"
+          cp "${{ github.workspace }}/${FILENAME_LICENSE}" "$DIR/${FILENAME_LICENSE}"
 
       - name: "Validate release third party licenses"
         shell: bash

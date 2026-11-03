@@ -29,6 +29,15 @@ jobs:
       contents: "read"
     uses: "$/.github/workflows/release-compile-packages.yml"
     with:
+      repository: "${{ github.repository }}"
+      ref: "${{ github.sha }}" # The trigger is a tag push, so this is the commit the tag points to
+      binary_name: "cherryctl"
+      filename_license: "LICENSE.md"
+      # Pass ld flags injectables as a JSON list of linker flag literals
+      ld_flags_variable_injectables: >-
+        [
+          "-X github.com/${{ github.repository }}/cmd.Version=${{ github.ref_name }}"
+        ]
       artifact_id_third_party_licenses: "${{ needs.compile-third-party-licenses.outputs.artifact_id_third_party_licenses }}"
 
   publish-release:
