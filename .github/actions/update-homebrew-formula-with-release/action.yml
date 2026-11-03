@@ -272,7 +272,7 @@ runs:
         REPO: "${{ inputs.homebrew_repo_owner }}/${{ steps.homebrew-repo.outputs.name }}"
       run: |
         dir="${GITHUB_WORKSPACE}/checkouts/${REPO}"
-        echo "pathname_homebrew_repo_checkout=$GITHUB_WORKSPACE/${dir}" >> "${GITHUB_OUTPUT}"
+        echo "pathname_homebrew_repo_checkout=${dir}" >> "${GITHUB_OUTPUT}"
 
     - name: "Checkout Homebrew repository"
       uses: "actions/checkout@v7.0.1"
