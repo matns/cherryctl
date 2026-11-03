@@ -228,7 +228,7 @@ runs:
           end
 
           test do
-            system "bin/${BINARY_NAME}", "-v"
+            ssert_match version.to_s, shell_output("#{bin}/${BINARY_NAME} -v")
           end
         end
         EOF
