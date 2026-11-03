@@ -74,8 +74,8 @@ jobs:
         env:
           ARTIFACT_ID: "${{ needs.compile-release-notes.outputs.artifact_id_release_notes }}"
         run: |-
-          if [[ -z "$ARTIFACT_ID" ]]; then
-            echo "::error::Release notes artifact ID is missing"
+          if [[ ! "$ARTIFACT_ID" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::Expected exactly one numeric artifact ID"
             exit 1
           fi
 
