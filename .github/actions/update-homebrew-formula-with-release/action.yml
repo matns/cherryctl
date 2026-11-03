@@ -210,6 +210,16 @@ runs:
         echo "pathname_formula_file=${PATHNAME_FORMULA_FILE}" >> "${GITHUB_OUTPUT}"
         echo "formula_name=${FORMULA_NAME}" >> "${GITHUB_OUTPUT}"
 
+    - name: "DEBUG: Show rendered formula"
+      if: runner.debug == '1'
+      shell: bash
+      env:
+        PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
+      run: |-
+        echo "::group::Rendered formula"
+        cat "$PATHNAME_FORMULA_FILE"
+        echo "::endgroup::"
+
     - name: "Ensure Brew In Path"
       shell: "bash"
       run: |-
@@ -226,7 +236,6 @@ runs:
 
         PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
         FORMULA_NAME: "${{ steps.generate.outputs.formula_name }}"
-
       run: |-
         test -s "${PATHNAME_FORMULA_FILE}"
         ruby -c "${PATHNAME_FORMULA_FILE}"
