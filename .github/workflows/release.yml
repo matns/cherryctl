@@ -153,6 +153,8 @@ jobs:
         env:
           GH_TOKEN: "${{ github.token }}"
           DIST_DIR: "${{ steps.prepare.outputs.dist_dir }}"
+
+        # NOTE: "DIST_DIR/*" is expaned by gh itself, not bash
         run: |
           gh release create "$GITHUB_REF_NAME" "$DIST_DIR/*" \
             --repo "${GITHUB_REPOSITORY}" \
