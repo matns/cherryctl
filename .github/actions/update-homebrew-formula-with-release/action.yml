@@ -243,6 +243,8 @@ runs:
         repo="${HOMEBREW_REPO_OWNER}/${HOMEBREW_REPO_NAME}"
 
         brew tap "${repo}" "$GITHUB_WORKSPACE"
+
+        echo "::debug::Brew audit using formula name: ${FORMULA_NAME}"
         brew audit --strict --formula "${repo}/${FORMULA_NAME}"
 
     - name: "Generate GitHub App token"
