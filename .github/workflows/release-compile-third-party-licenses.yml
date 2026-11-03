@@ -1,9 +1,14 @@
 
 ---
-name: "Release: Compile Third Party Licenses"
+name: "Compile: Third Party Licenses"
 
 on:
   workflow_call:
+    inputs:
+      ref:
+        type: "string"
+        required: true
+        description: "Immutable hash of the reference"
     outputs:
       artifact_id_third_party_licenses:
         description: "Artifact ID for Third Party Licenses"
@@ -29,7 +34,7 @@ jobs:
         uses: "actions/checkout@v7.0.1"
         with:
           repository: "${{ github.repository }}"
-          ref: "${{ github.ref_name }}"
+          ref: "${{ inputs.ref }}"
           fetch-depth: 0
           persist-credentials: false
 
@@ -48,9 +53,16 @@ jobs:
         run: |-
           HEAD_SHA="$(git rev-parse --verify 'HEAD^{commit}')"
           TAG_SHA="$(git rev-parse --verify "${GITHUB_REF}^{commit}")"
+          EVENT_SHA="$GITHUB_SHA"
 
           echo "::debug::HEAD_SHA is '${HEAD_SHA}'"
           echo "::debug::TAG_SHA is '${TAG_SHA}'"
+          echo "::debug::EVENT_SHA is '${EVENT_SHA}'"
+
+          if [[ "$HEAD_SHA" != "$EVENT_SHA" ]]; then
+               echo "::error::Checkout HEAD does not match the triggering commit"
+               exit 1
+          fi
 
           if [[ "$HEAD_SHA" != "$TAG_SHA" ]]; then
             echo "::error::Checkout HEAD does not match the release tag"
@@ -86,6 +98,6 @@ jobs:
         id: "upload"
         uses: "actions/upload-artifact@v7.0.2"
         with:
-          name: "third_party_licenses-${{ github.ref_name }}"
+          name: "third_party_licenses-${{ github.sha }}"
           path: "${{ steps.prepare.outputs.dir }}/${{ steps.prepare.outputs.filename_third_party_licenses }}"
           if-no-files-found: "error"

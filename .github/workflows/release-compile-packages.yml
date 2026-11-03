@@ -1,5 +1,5 @@
 ---
-name: "Build: Compile Packages"
+name: "Build: Compile and Assemble Packages with Go Codebase"
 on:
   workflow_call:
     inputs:

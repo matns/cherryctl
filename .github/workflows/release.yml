@@ -15,6 +15,8 @@ jobs:
     permissions:
       contents: "read"
     uses: "$/.github/workflows/release-compile-third-party-licenses.yml"
+    with:
+      ref: "${{ github.sha }}"
 
   compile-release-notes:
     name: "Compile: Release Notes"
