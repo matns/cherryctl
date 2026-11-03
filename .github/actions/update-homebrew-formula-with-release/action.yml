@@ -250,7 +250,7 @@ runs:
         permission-single-file: "write"
 
     - name: "Checkout Homebrew repository"
-      uses: "actions/checkout@v4"
+      uses: "actions/checkout@v7.0.1"
       with:
         repository: "${{ inputs.homebrew_repo_owner }}/${{ steps.homebrew-repo.outputs.name }}"
         token: "${{ steps.app-token.outputs.token }}"
@@ -273,8 +273,7 @@ runs:
         tap="${HOMEBREW_REPO_OWNER}/${HOMEBREW_TAP_NAME}"
         brew tap "${tap}" "${GITHUB_WORKSPACE}/homebrew-tap"
 
-        # brew tap clones committed files; place the newly generated formula in
-        # its clone so the audit checks what will actually be published.
+        # brew tap clones committed files; place the newly generated formula in its clone so the audit checks what will actually be published.
         tap_dir="$(brew --repo "${tap}")"
         destination="${tap_dir}/${PATHNAME_HOMEBREW_FORMULA}"
         mkdir -p "$(dirname "${destination}")"
