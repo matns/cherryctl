@@ -1,9 +1,10 @@
+---
 name: 'ci'
 
 on:
   push:
     branches:
-    - master
+      - master
   pull_request:
 
 permissions:
@@ -14,29 +15,29 @@ jobs:
     name: ci
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v7.0.1
-      with:
-        fetch-depth: 1
-    - name: Restore Cache
-      uses: actions/cache@v6.1.0
-      id: cache
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-    - uses: actions/setup-go@v7.0.0
-      with:
-        go-version-file: 'go.mod'
-    - name: Build docs
-      run: make generate-docs
-    - name: Detect Uncommitted Docs
-      run: git diff --exit-code docs
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 1
+      - name: Restore Cache
+        uses: actions/cache@v6.1.0
+        id: cache
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - uses: actions/setup-go@v7.0.0
+        with:
+          go-version-file: 'go.mod'
+      - name: Build docs
+        run: make generate-docs
+      - name: Detect Uncommitted Docs
+        run: git diff --exit-code docs
 
-    - name: Check formatting
-      run: go fmt ./...
-    - name: Detect incorrect formatting
-      run: git diff --exit-code .
+      - name: Check formatting
+        run: go fmt ./...
+      - name: Detect incorrect formatting
+        run: git diff --exit-code .
 
-    - name: Run tests
-      run: go test -race ./...
+      - name: Run tests
+        run: go test -race ./...

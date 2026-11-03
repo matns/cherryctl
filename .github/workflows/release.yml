@@ -162,7 +162,6 @@ jobs:
             --notes-file "${{ github.workspace }}/${{ needs.compile-release-notes.outputs.filename_release_notes }}" \
             --verify-tag
 
-
       - name: "Get checksums asset ID and output"
         id: "output-checksums-asset-id"
         shell: "bash"
