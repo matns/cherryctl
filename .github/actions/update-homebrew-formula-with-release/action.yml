@@ -215,14 +215,22 @@ runs:
         echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
         brew --version
 
-    - name: "Validate Homebrew formula file"
+    - name: "Validate Homebrew Formula File"
       shell: "bash"
       env:
         PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
+
+        HOMEBREW_REPO_NAME: "${{ inputs.homebrew_repo_name }}"
+        HOMEBREW_REPO_OWNER: "${{ inputs.homebrew_repo_owner }}"
+        BINARY_NAME: "${{ inputs.binary_name }}"
       run: |-
         test -s "${PATHNAME_FORMULA_FILE}"
         ruby -c "${PATHNAME_FORMULA_FILE}"
-        brew audit --strict --formula "${PATHNAME_FORMULA_FILE}"
+
+        repo="${HOMEBREW_REPO_OWNER}/${HOMEBREW_REPO_NAME}"
+
+        brew tap "${repo}" "$GITHUB_WORKSPACE"
+        brew audit --strict --formula "${repo}/${BINARY_NAME}"
 
     - name: "Generate GitHub App token"
       id: "app-token"
