@@ -175,7 +175,7 @@ runs:
           license "${LICENSE}" # MPL 2.0
 
           livecheck do
-            url "https://github.com/${RELEASES_REPO_OWNER}/${RELEASES_REPO_NAME}"
+            url :stable
             strategy :github_latest
           end
 
