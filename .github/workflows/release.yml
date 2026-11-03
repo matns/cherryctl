@@ -66,11 +66,14 @@ jobs:
       - name: "Prepare"
         id: "prepare"
         shell: "bash"
+        env:
+          SOURCE_NAME: ${{ github.event.repository.name }}
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
           DIST_DIR="$(mktemp -d)"
           echo "dist_dir=$DIST_DIR" >> "$GITHUB_OUTPUT"
 
-          FILENAME_CHECKSUMS="${{ github.event.repository.name }}-${{ github.ref_name }}.sha256sum"
+          FILENAME_CHECKSUMS="${SOURCE_NAME}-${RELEASE_TAG}.sha256sum"
           echo "filename_checksums=${FILENAME_CHECKSUMS}" >> "$GITHUB_OUTPUT"
 
       - name: "Fetch worklow package artifacts"
