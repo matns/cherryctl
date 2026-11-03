@@ -240,7 +240,7 @@ runs:
         test -s "${PATHNAME_FORMULA_FILE}"
         ruby -c "${PATHNAME_FORMULA_FILE}"
 
-        repo="${HOMEBREW_REPO_OWNER}/${HOMEBREW_REPO_NAME}"
+        repo="${HOMEBREW_REPO_OWNER}/homebrew-${HOMEBREW_REPO_NAME}"
 
         brew tap "${repo}" "$GITHUB_WORKSPACE"
 
