@@ -22,7 +22,7 @@ on:
       ld_flags_variable_injectables:
         type: "string"
         required: true
-        description: "List of ld flags variable injectables (example: -X github.com/owner/repo/cmd.Version=${{ github.ref_name }})"
+        description: "List of ld flags variable injectables"
         default: "[]"
       artifact_id_third_party_licenses:
         type: "string"
