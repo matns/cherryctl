@@ -201,7 +201,7 @@ runs:
           end
 
           test do
-            system "#{bin}/${BINARY_NAME}}", "-v"
+            system "#{bin}/${BINARY_NAME}", "-v"
           end
         end
         EOF
