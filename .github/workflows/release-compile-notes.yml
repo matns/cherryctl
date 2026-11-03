@@ -55,7 +55,6 @@ jobs:
         id: "upload-release-notes"
         uses: "actions/upload-artifact@v7.0.2"
         with:
-          name: "release_notes-${{ github.ref_name }}"
           path: "${{ steps.prepare.outputs.release_notes_path }}"
           archive: false
           if-no-files-found: "error"
