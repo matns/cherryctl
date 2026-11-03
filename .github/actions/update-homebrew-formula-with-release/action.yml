@@ -125,6 +125,7 @@ runs:
         RELEASES_REPO_OWNER: "${{ inputs.releases_repo_owner }}"
         RELEASES_REPO_NAME: "${{ inputs.releases_repo_name }}"
         BINARY_NAME: "${{ inputs.binary_name }}"
+        LICENSE: "${{ inputs.license }}"
       run: |
         set -euo pipefail
 
@@ -160,7 +161,7 @@ runs:
           desc "Official Cherry Servers CLI"
           homepage "https://www.cherryservers.com/"
           version "${VERSION}"
-          license "${{ inputs.license }}" # MPL 2.0
+          license "${LICENSE}" # MPL 2.0
 
           livecheck do
             url "https://github.com/${RELEASES_REPO_OWNER}/${RELEASES_REPO_NAME}"
