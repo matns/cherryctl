@@ -82,7 +82,7 @@ jobs:
           ld_flags=$(jq -er 'if type == "array" and all(.[]; type == "string") then join(" ") else error("expected an array of strings") end' <<< "$LD_FLAGS_JSON")
           echo "::debug::ld_flags: ${ld_flags}"
 
-          echo "ld_flags_variable_injectables=$ld_flags" >> "$GITHUB_ENV"
+          echo "ld_flags_variable_injectables=${ld_flags}" >> "$GITHUB_ENV"
       - name: "Build"
         env:
           GOOS: "${{ matrix.GOOS }}"
@@ -100,6 +100,7 @@ jobs:
                 binary_name="${binary_name}.exe"
           fi
 
+          echo "::debug::Using LD_FLAGS_VARIABLE_INJECTABLES=${LD_FLAGS_VARIABLE_INJECTABLES}"
           go build \
             -trimpath \
             -ldflags "${LD_FLAGS_VARIABLE_INJECTABLES} ${LD_FLAGS_TARGET}" \
