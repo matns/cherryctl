@@ -98,6 +98,6 @@ jobs:
         id: "upload"
         uses: "actions/upload-artifact@v7.0.2"
         with:
-          name: "third_party_licenses-${{ github.sha }}"
+          name: "third_party_licenses-${{ inputs.ref }}"
           path: "${{ steps.prepare.outputs.dir }}/${{ steps.prepare.outputs.filename_third_party_licenses }}"
           if-no-files-found: "error"
