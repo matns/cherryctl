@@ -189,7 +189,7 @@ jobs:
 
   update-homebrew-tap:
     name: "Deploy: Homebrew Tap"
-    runs-on: "ubuntu-24.04-firewall"
+    runs-on: "ubuntu-26.04-firewall"
     needs: ["publish-release"]
     permissions:
       contents: "read"
