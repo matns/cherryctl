@@ -279,7 +279,7 @@ runs:
         cp "${PATHNAME_FORMULA_FILE}" "${destination}"
 
         echo "::debug::Brew audit using formula name: ${FORMULA_NAME}"
-        brew trust --formula ${tap}
+        brew trust --tap ${tap}
         brew audit --strict --formula "${tap}/${FORMULA_NAME}"
 
     - name: "Update Homebrew Repository"
