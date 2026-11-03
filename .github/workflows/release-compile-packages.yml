@@ -61,11 +61,16 @@ jobs:
           CGO_LDFLAGS: "${{ matrix.CGO_LDFLAGS }}"
           DIR: "${{ steps.prepare.outputs.dir }}"
         run: |
+          binary_name="$BINARY_NAME"
+          if [[ "$GOOS" == "windows" ]]; then
+                binary_name="${binary_name}.exe"
+          fi
+
           go build \
             -trimpath \
-            -ldflags "$LD_FLAGS_COMMON $LD_FLAGS_TARGET" \
-            -o "$DIR/$BINARY_NAME" \
-            "$MAIN_PATH"
+            -ldflags "${LD_FLAGS_COMMON} ${LD_FLAGS_TARGET}" \
+            -o "${DIR}/${binary_name}" \
+            "${MAIN_PATH}"
 
       - name: "Copy cherryctl license into package dir"
         shell: "bash"
