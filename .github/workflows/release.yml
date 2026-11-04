@@ -98,6 +98,9 @@ jobs:
           FILENAME_CHECKSUMS="${SOURCE_NAME}-${RELEASE_TAG}.sha256sum"
           PATHNAME_CHECKSUMS="$(mktemp -d)/${FILENAME_CHECKSUMS}"
 
+          echo "::debug::FILENAME_CHECKSUMS: ${FILENAME_CHECKSUMS}"
+          echo "::debug::PATHNAME_CHECKSUMS: ${PATHNAME_CHECKSUMS}"
+
           echo "pathname_checksums=${PATHNAME_CHECKSUMS}" >> "$GITHUB_OUTPUT"
           echo "filename_checksums=${FILENAME_CHECKSUMS}" >> "$GITHUB_OUTPUT"
 
@@ -172,7 +175,7 @@ jobs:
           PATHNAME_CHECKSUMS: "${{ steps.prepare.outputs.pathname_checksums }}"
           FILENAME_CHECKSUMS: "${{ steps.prepare.outputs.filename_checksums }}"
         run: |
-          cosign sign-blob "$DIST_DIR/$PATHNAME_CHECKSUMS" --bundle "${DIST_DIR}/{$FILENAME_CHECKSUMS}.sigstore.json" --yes
+          cosign sign-blob "${PATHNAME_CHECKSUMS}" --bundle "${DIST_DIR}/{$FILENAME_CHECKSUMS}.sigstore.json" --yes
 
       - name: "Create release"
         shell: "bash"
