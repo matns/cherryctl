@@ -205,9 +205,9 @@ runs:
         test -s "${PATHNAME_FORMULA_FILE}"
 
     - name: "gVisor: Check if formula is valid Ruby"
-      uses: geomys/sandboxed-step@v1.2.2
+      uses: "geomys/sandboxed-step@v1.2.2"
       with:
-         rootfs-image: "ruby:3.4-slim-bookworm@sha256:a0636a941ef86063f17b343f6c96f271f8eeedd76febf035bb6d57bc5024682b"
+         rootfs-image: "docker.io/ruby:3.4-slim-bookworm@sha256:a0636a941ef86063f17b343f6c96f271f8eeedd76febf035bb6d57bc5024682b"
          disable-network: "true"
          env: |-
            PATHNAME_FORMULA_FILE=${{ steps.generate.outputs.pathname_formula_file }}
@@ -220,11 +220,11 @@ runs:
            fi
 
     - name: "gVisor: Install and test generated Homebrew formula"
-      uses: geomys/sandboxed-step@v1.2.2
+      uses: "geomys/sandboxed-step@v1.2.2"
       with:
         rootfs-image: "ghcr.io/homebrew/brew:7.0.12@sha256:1b85f3ae0e6eb7f1d77326143a99d5b1f201f6c63a88c8dac3e1e042801dafe7"
         disable-network: "true"
-        env:
+        env: |-
           HOMEBREW_DEVELOPER: "1"
           HOMEBREW_NO_AUTO_UPDATE: "1"
           PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
