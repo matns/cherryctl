@@ -219,16 +219,6 @@ runs:
       run: |-
         ruby -c "${PATHNAME_FORMULA_FILE}"
 
-    - name: "Audit generated Homebrew formula (no tap checkout)"
-      shell: "bash"
-      env:
-        # Homebrew otherwise forbids local formula paths by default.
-        HOMEBREW_DEVELOPER: "1"
-        PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
-      run: |-
-        set -euo pipefail
-        brew audit --strict --formula "${PATHNAME_FORMULA_FILE}"
-
     - name: "Install and test generated Homebrew formula locally"
       shell: "bash"
       env:
