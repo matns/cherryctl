@@ -46,8 +46,7 @@ jobs:
 
   compile-packages:
     name: "Compile: Release Packages (tarballs)"
-    # needs: ["compile-third-party-licenses", "fact-finding"]
-    needs: ["fact-finding"]
+    needs: ["compile-third-party-licenses", "fact-finding"]
     permissions:
       contents: "read"
     uses: "$/.github/workflows/release-compile-packages.yml"
@@ -106,7 +105,7 @@ jobs:
           path: "${{ steps.prepare.outputs.dist_dir }}"
           merge-multiple: true
 
-      - name: "Generate checksums of the release"
+      # - name: "Generate checksums of the release"
         # - name: "Validate release notes artifact ID"
         #   shell: bash
         #   env:
