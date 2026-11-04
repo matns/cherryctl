@@ -204,7 +204,7 @@ runs:
       run: |-
         test -s "${PATHNAME_FORMULA_FILE}"
 
-    - name: "Check if formula is valid Ruby"
+    - name: "gVisor: Check if formula is valid Ruby"
       uses: geomys/sandboxed-step@v1.2.2
       with:
          rootfs-image: "ruby:3.4-slim-bookworm@sha256:a0636a941ef86063f17b343f6c96f271f8eeedd76febf035bb6d57bc5024682b"
