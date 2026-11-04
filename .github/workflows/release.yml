@@ -208,7 +208,7 @@ jobs:
           )
 
           if [[ -z "$asset_id" ]]; then
-            echo "::error title=Release asset not found::Checksum release asset not found: $PATHNAME_CHECKSUMS"
+            echo "::error title=Release asset not found::Checksum release asset not found: $FILENAME_CHECKSUMS"
             exit 1
           fi
 
