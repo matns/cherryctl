@@ -213,11 +213,13 @@ runs:
         test -s "${PATHNAME_FORMULA_FILE}"
 
     - name: "Check if formula is valid Ruby"
-      shell: "bash"
-      env:
-        PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
-      run: |-
-        ruby -c "${PATHNAME_FORMULA_FILE}"
+      uses: geomys/sandboxed-step@v1.2.2
+      with:
+         disable-network: "true"
+         env: |-
+           PATHNAME_FORMULA_FILE=${{ steps.generate.outputs.pathname_formula_file }}
+         run: |-
+           ruby -c "${PATHNAME_FORMULA_FILE}"
 
     - name: "Install and test generated Homebrew formula locally"
       shell: "bash"
