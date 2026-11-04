@@ -102,26 +102,26 @@ jobs:
       #     artifact-ids: "${{ needs.compile-release-notes.outputs.artifact_id_release_notes }}"
       #     path: "${{ github.workspace }}"
 
-      - name: "Set up anchore/syft" # v1.54.1
-        shell: "bash"
-        run: |
-          go install github.com/anchore/syft/cmd/syft@b254e6d92f28c3868a755f62fb3ca8f26e9fee76
+      # - name: "Set up anchore/syft" # v1.54.1
+      #   shell: "bash"
+      #   run: |
+      #     go install github.com/anchore/syft/cmd/syft@b254e6d92f28c3868a755f62fb3ca8f26e9fee76
 
-      - name: "Generate repository source SBOM"
-        shell: "bash"
-        env:
-          SOURCE_SBOM_NAME: "${{ env.SOURCE_NAME }}-${{ env.GITHUB_REF_NAME }}-source"
-          DIST_DIR: "${{ steps.prepare.outputs.dist_dir }}"
-        run: |
-          $(go env GOPATH)/bin/syft dir:${{ github.workspace }} \
-            --source-name "$SOURCE_NAME" \
-            --source-version "$GITHUB_REF_NAME" \
-            -o spdx-json="$DIST_DIR/$SOURCE_SBOM_NAME.spdx.json"
-
-          $(go env GOPATH)/bin/syft dir:${{ github.workspace }} \
-          --source-name "$SOURCE_NAME" \
-          --source-version "$GITHUB_REF_NAME" \
-          -o cyclonedx-json="$DIST_DIR/$SOURCE_SBOM_NAME.cdx.json"
+#       - name: "Generate repository source SBOM"
+#         shell: "bash"
+#         env:
+#           SOURCE_SBOM_NAME: "${{ env.SOURCE_NAME }}-${{ env.GITHUB_REF_NAME }}-source"
+#           DIST_DIR: "${{ steps.prepare.outputs.dist_dir }}"
+#         run: |
+#           $(go env GOPATH)/bin/syft dir:${{ github.workspace }} \
+#             --source-name "$SOURCE_NAME" \
+#             --source-version "$GITHUB_REF_NAME" \
+#             -o spdx-json="$DIST_DIR/$SOURCE_SBOM_NAME.spdx.json"
+#
+#           $(go env GOPATH)/bin/syft dir:${{ github.workspace }} \
+#           --source-name "$SOURCE_NAME" \
+#           --source-version "$GITHUB_REF_NAME" \
+#           -o cyclonedx-json="$DIST_DIR/$SOURCE_SBOM_NAME.cdx.json"
 
       - name: "Generate checksums of the release"
         shell: "bash"
