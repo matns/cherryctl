@@ -31,7 +31,6 @@ on:
 permissions: {}
 jobs:
   build-binaries:
-    name: "Compile: Binary"
     permissions:
       contents: "read"
     strategy:
