@@ -365,7 +365,7 @@ jobs:
       ${{
         github.event_name == 'push' &&
         github.ref_type == 'tag' &&
-        github.ref_protected == true &&
+        github.ref_protected == true
       }}
     needs:
       - prepare-homebrew-formula
