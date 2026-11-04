@@ -222,7 +222,7 @@ jobs:
       - name: "Checkout repository for local action"
         uses: "actions/checkout@v7.0.1"
       - name: Publish Homebrew formula
-        uses: "$/.github/actions/publish-homebrew"
+        uses: "$/.github/actions/update-homebrew-tap-with-formula"
         with:
           binary_name: "cherryctl"
           release_tag: "${{ github.ref_name }}"
