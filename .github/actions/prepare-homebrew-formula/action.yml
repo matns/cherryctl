@@ -222,6 +222,7 @@ runs:
     - name: "gVisor: Install and test generated Homebrew formula"
       uses: "geomys/sandboxed-step@v1.2.2"
       with:
+        rootfs-image: "ghcr.io/homebrew/brew:7.0.12@sha256:1b85f3ae0e6eb7f1d77326143a99d5b1f201f6c63a88c8dac3e1e042801dafe7"
         disable-network: "true"
         env: |-
           HOMEBREW_DEVELOPER="1"
