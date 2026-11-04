@@ -198,13 +198,6 @@ runs:
         cat "$PATHNAME_FORMULA_FILE"
         echo "::endgroup::"
 
-    - name: "Ensure Brew In Path"
-      shell: "bash"
-      run: |-
-        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-        echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
-        brew --version
-
     - name: "Check if formula exists"
       shell: "bash"
       env:
@@ -215,11 +208,19 @@ runs:
     - name: "Check if formula is valid Ruby"
       uses: geomys/sandboxed-step@v1.2.2
       with:
+         rootfs-image: ruby:3.4-slim-bookworm@sha256:a0636a941ef86063f17b343f6c96f271f8eeedd76febf035bb6d57bc5024682b
          disable-network: "true"
          env: |-
            PATHNAME_FORMULA_FILE=${{ steps.generate.outputs.pathname_formula_file }}
          run: |-
            ruby -c "${PATHNAME_FORMULA_FILE}"
+
+    - name: "Ensure Brew In Path"
+      shell: "bash"
+      run: |-
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+        brew --version
 
     - name: "Install and test generated Homebrew formula locally"
       shell: "bash"
