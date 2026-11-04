@@ -135,7 +135,7 @@ jobs:
           merge-multiple: false
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v6.5.0
         with:
           go-version-file: go.mod
           cache: false
@@ -337,7 +337,7 @@ jobs:
         uses: actions/checkout@v7.0.1
 
       - name: Prepare Homebrew formula
-        uses: ./.github/actions/prepare-homebrew-formula
+        uses: $/.github/actions/prepare-homebrew-formula
         with:
           binary_name: cherryctl
           license: MPL-2.0
@@ -366,7 +366,7 @@ jobs:
         uses: actions/checkout@v7.0.1
 
       - name: Publish Homebrew formula
-        uses: ./.github/actions/update-homebrew-tap-with-formula
+        uses: $/.github/actions/update-homebrew-tap-with-formula
         with:
           binary_name: cherryctl
           release_tag: ${{ github.ref_name }}
