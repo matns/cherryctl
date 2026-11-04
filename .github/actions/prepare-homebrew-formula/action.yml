@@ -219,24 +219,25 @@ runs:
              exit 1
            fi
 
-    - name: "Ensure Brew In Path"
-      shell: "bash"
-      run: |-
-        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-        echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
-        brew --version
+    - name: "gVisor: Install and test generated Homebrew formula"
+      uses: geomys/sandboxed-step@v1.2.2
+      with:
+        rootfs-image: "ghcr.io/homebrew/brew:7.0.12@sha256:1b85f3ae0e6eb7f1d77326143a99d5b1f201f6c63a88c8dac3e1e042801dafe7"
+        disable-network: "true"
+        env:
+          HOMEBREW_DEVELOPER: "1"
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+          PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
+        run: |-
+          set -euo pipefail
+          echo "::debug::Brew version: $(brew --version)"
 
-    - name: "Install and test generated Homebrew formula locally"
-      shell: "bash"
-      env:
-        HOMEBREW_DEVELOPER: "1"
-        HOMEBREW_NO_AUTO_UPDATE: "1"
-        PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
-      run: |-
-        set -euo pipefail
-        # Install from the generated local file, not from a Homebrew tap.
-        brew install --formula "${PATHNAME_FORMULA_FILE}"
-        brew test "${PATHNAME_FORMULA_FILE}"
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+
+          # Install from the generated local file, not from a Homebrew tap.
+          brew install --formula "${PATHNAME_FORMULA_FILE}"
+          brew test "${PATHNAME_FORMULA_FILE}"
 
     - name: "Upload Formula File"
       id: "upload-formula"
