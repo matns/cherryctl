@@ -84,6 +84,22 @@ jobs:
         ]
       artifact_id_third_party_licenses: "${{ needs.compile-third-party-licenses.outputs.artifact_id_third_party_licenses }}"
 
+  generate-source-sboms:
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        github.ref_type == 'tag' &&
+        github.ref_protected == true
+      }}
+    permissions:
+      contents: "read"
+    uses: "$/.github/workflows/generate-source-sboms.yml"
+    with:
+      repository: "${{ github.repository }}"
+      ref: "${{ github.sha }}"
+      source_name: "${{ github.event.repository.name }}"
+      release_tag: "${{ github.ref_name }}"
+
   publish-release:
     if: >-
       ${{
@@ -91,7 +107,8 @@ jobs:
          github.ref_type == 'tag' &&
          github.ref_protected == true
       }}
-    needs: ["compile-packages"]
+    environment: "publish-github-release"
+    needs: ["compile-packages", "generate-source-sboms"]
     runs-on: "ubuntu-latest"
     permissions:
       contents: "write"
@@ -155,37 +172,11 @@ jobs:
           path: "${{ steps.prepare.outputs.packages_dir }}"
           merge-multiple: false
 
-      - name: "Set up Go"
-        uses: "actions/setup-go@v6.5.0"
+      - name: "Fetch source SBOM artifacts"
+        uses: "actions/download-artifact@v8.0.2"
         with:
-          go-version-file: "go.mod"
-          cache: false
-
-      - name: "Install Syft"
-        shell: "bash"
-        run: |-
-          set -euo pipefail
-          go install github.com/anchore/syft/cmd/syft@b254e6d92f28c3868a755f62fb3ca8f26e9fee76
-
-      - name: "Generate source SBOMs"
-        shell: "bash"
-        env:
-          SBOMS_DIR: "${{ steps.prepare.outputs.sboms_dir }}"
-        run: |-
-          set -euo pipefail
-
-          SYFT="$(go env GOPATH)/bin/syft"
-          SBOM_NAME="${SOURCE_NAME}-${RELEASE_TAG}-source"
-
-          "$SYFT" "dir:${GITHUB_WORKSPACE}" \
-            --source-name "$SOURCE_NAME" \
-            --source-version "$RELEASE_TAG" \
-            -o "spdx-json=${SBOMS_DIR}/${SBOM_NAME}.spdx.json"
-
-          "$SYFT" "dir:${GITHUB_WORKSPACE}" \
-            --source-name "$SOURCE_NAME" \
-            --source-version "$RELEASE_TAG" \
-            -o "cyclonedx-json=${SBOMS_DIR}/${SBOM_NAME}.cdx.json"
+          name: "release-source-sboms-${{ github.sha }}"
+          path: "${{ steps.prepare.outputs.sboms_dir }}"
 
       - name: "Stage release assets"
         shell: "bash"
