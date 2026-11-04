@@ -38,7 +38,7 @@ jobs:
       - name: "Set up Go"
         uses: "actions/setup-go@v7.0.0"
         with:
-          go-version-file: "stable"
+          go-version: "stable"
           cache: false
 
       - name: "Install Syft"
