@@ -1,46 +1,21 @@
-# This composite reusable action publishes formula files to configured Homebrew git repository
-# It inherits the buid environment declared by calling workflow.\
-# This environment should be protected, so that only authorized people may trigger this action.
+# This composite action generates and tests a Homebrew formula from a release.
+# It uses the calling workflow's environment and never checks out a tap repository.
 ---
-name: "Action: Update Homebrew Formula With Release"
+name: "Action: Prepare and Test Homebrew Formula"
 inputs:
   binary_name:
     required: true
-    type: "string"
   license:
     required: true
-    type: "string"
   release_tag:
     required: true
-    type: "string"
-  homebrew_repo_name:
-    required: true
-    type: "string"
-  homebrew_repo_owner:
-    required: true
-    type: "string"
   releases_repo_owner:
     required: true
-    type: "string"
   releases_repo_name:
     required: true
-    type: "string"
-  pathname_homebrew_formula:
-    required: true
-    description: "Pathname in git repo to the Homebrew formula"
-    type: "string"
-  formula_updater_app_client_id:
-    required: true
-    description: "Client ID of the GitHub App authorized to make changes to Homebrew repo"
-    type: "string"
-  secret_formula_updater_app_private_key:
-    required: true
-    description: "Private key of the GitHub App authorized to make changes to Homebrew repo"
-    type: "string"
   release_asset_id_checksums_file:
     required: true
     description: "Release asset id for release's checksums file"
-    type: "string"
 runs:
   using: "composite"
   steps:
@@ -70,43 +45,22 @@ runs:
         BINARY_NAME: "${{ inputs.binary_name }}"
         LICENSE: "${{ inputs.license }}"
         RELEASE_TAG: "${{ inputs.release_tag }}"
-        HOMEBREW_REPO_NAME: "${{ inputs.homebrew_repo_name }}"
-        HOMEBREW_REPO_OWNER: "${{ inputs.homebrew_repo_owner }}"
         RELEASES_REPO_OWNER: "${{ inputs.releases_repo_owner }}"
         RELEASES_REPO_NAME: "${{ inputs.releases_repo_name }}"
-        PATHNAME_HOMEBREW_FORMULA: "${{ inputs.pathname_homebrew_formula }}"
-        FORMULA_UPDATER_APP_CLIENT_ID: "${{ inputs.formula_updater_app_client_id }}"
-        SECRET_FORMULA_UPDATER_APP_PRIVATE_KEY: "${{ inputs.secret_formula_updater_app_private_key }}"
         RELEASE_ASSET_ID_CHECKSUMS_FILE: "${{ inputs.release_asset_id_checksums_file }}"
       run: |
         for name in \
           BINARY_NAME \
           LICENSE \
           RELEASE_TAG \
-          HOMEBREW_REPO_NAME \
-          HOMEBREW_REPO_OWNER \
           RELEASES_REPO_OWNER \
           RELEASES_REPO_NAME \
-          PATHNAME_HOMEBREW_FORMULA \
-          FORMULA_UPDATER_APP_CLIENT_ID \
-          SECRET_FORMULA_UPDATER_APP_PRIVATE_KEY \
           RELEASE_ASSET_ID_CHECKSUMS_FILE; do
           if [[ -z "${!name-}" ]]; then
             echo "::error::Required input $name is missing or empty"
             exit 1
           fi
         done
-
-    - name: "Resolve Homebrew repository name"
-      id: "homebrew-repo"
-      shell: "bash"
-      env:
-        HOMEBREW_REPO_NAME: "${{ inputs.homebrew_repo_name }}"
-      run: |
-        repo_name="$HOMEBREW_REPO_NAME"
-        [[ "$repo_name" == homebrew-* ]] || repo_name="homebrew-${repo_name}"
-        echo "name=${repo_name}" >> "$GITHUB_OUTPUT"
-        echo "tap=${repo_name#homebrew-}" >> "$GITHUB_OUTPUT"
 
     - name: "Check if release tag is valid"
       shell: "bash"
@@ -133,7 +87,7 @@ runs:
 
         gh api "repos/${RELEASE_REPO}/releases/assets/${RELEASE_ASSET_ID_CHECKSUMS}" \
           -H "Accept: application/octet-stream" \
-          > ${pathname_checksums}
+          > "${pathname_checksums}"
 
         if [[ ! -s "$pathname_checksums" ]]; then
           echo "::error title=Download failed::Release checksums file is empty"
@@ -157,7 +111,6 @@ runs:
         set -euo pipefail
 
         TAG="$RELEASE_TAG"
-        VERSION="${TAG#v}"
         PATHNAME_CHECKSUMS="${{ steps.prepare-download-output.outputs.pathname_checksums }}"
 
         checksum() {
@@ -180,7 +133,7 @@ runs:
         PATHNAME_FORMULA_FILE="${dir}/${BINARY_NAME}.rb"
         FORMULA_NAME="$(capitalize ${BINARY_NAME})"
 
-        cat > ${PATHNAME_FORMULA_FILE} <<EOF
+        cat > "${PATHNAME_FORMULA_FILE}" <<EOF
         # typed: false
         # frozen_string_literal: true
 
@@ -228,13 +181,12 @@ runs:
           end
 
           test do
-            ssert_match version.to_s, shell_output("#{bin}/${BINARY_NAME} -v")
+            assert_match version.to_s, shell_output("#{bin}/${BINARY_NAME} -v")
           end
         end
         EOF
 
         echo "pathname_formula_file=${PATHNAME_FORMULA_FILE}" >> "${GITHUB_OUTPUT}"
-        echo "formula_name=${FORMULA_NAME}" >> "${GITHUB_OUTPUT}"
 
     - name: "DEBUG: Show rendered formula"
       if: runner.debug == '1'
@@ -253,35 +205,6 @@ runs:
         echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
         brew --version
 
-    - name: "Generate GitHub App token"
-      id: "app-token"
-      uses: "actions/create-github-app-token@v3.3.0"
-      with:
-        client-id: "${{ inputs.formula_updater_app_client_id }}"
-        private-key: "${{ inputs.secret_formula_updater_app_private_key }}"
-        owner: "${{ inputs.homebrew_repo_owner }}"
-        repositories: "${{ steps.homebrew-repo.outputs.name }}"
-        permission-contents: "read"
-        permission-single-file: "write"
-
-    - name: "Prepare homebrew repo checkout dir"
-      id: "prepare-homebrew-repo-checkout-dir"
-      shell: "bash"
-      env:
-        GITHUB_WORKSPACE: "${{ github.workspace }}"
-        REPO: "${{ inputs.homebrew_repo_owner }}/${{ steps.homebrew-repo.outputs.name }}"
-      run: |
-        dir="${GITHUB_WORKSPACE}/checkouts/${REPO}"
-        echo "pathname_homebrew_repo_checkout=${dir}" >> "${GITHUB_OUTPUT}"
-
-    - name: "Checkout Homebrew repository"
-      uses: "actions/checkout@v7.0.1"
-      with:
-        repository: "${{ inputs.homebrew_repo_owner }}/${{ steps.homebrew-repo.outputs.name }}"
-        token: "${{ steps.app-token.outputs.token }}"
-        path: "${{ steps.prepare-homebrew-repo-checkout-dir.outputs.pathname_homebrew_repo_checkout }}"
-        persist-credentials: false
-
     - name: "Check if formula exists"
       shell: "bash"
       env:
@@ -296,60 +219,34 @@ runs:
       run: |-
         ruby -c "${PATHNAME_FORMULA_FILE}"
 
-    - name: "Check If Homebrew Formula File Passes Brew Audit"
+    - name: "Audit generated Homebrew formula (no tap checkout)"
       shell: "bash"
       env:
-        HOMEBREW_REPO_OWNER: "${{ inputs.homebrew_repo_owner }}"
-        HOMEBREW_TAP_NAME: "${{ steps.homebrew-repo.outputs.tap }}"
-        PATHNAME_HOMEBREW_FORMULA: "${{ inputs.pathname_homebrew_formula }}"
+        # Homebrew otherwise forbids local formula paths by default.
+        HOMEBREW_DEVELOPER: "1"
         PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
-        FORMULA_NAME: "${{ steps.generate.outputs.formula_name }}"
-        PATHNAME_HOMEBREW_REPO_CHECKOUT: ${{ steps.prepare-homebrew-repo-checkout-dir.outputs.pathname_homebrew_repo_checkout }}
-
       run: |-
         set -euo pipefail
+        brew audit --strict --formula "${PATHNAME_FORMULA_FILE}"
 
-        tap="${HOMEBREW_REPO_OWNER}/${HOMEBREW_TAP_NAME}"
-        brew tap "${tap}" "${PATHNAME_HOMEBREW_REPO_CHECKOUT}"
-
-        # brew tap clones committed files; place the newly generated formula in its clone so the audit checks what will actually be published.
-        tap_dir="$(brew --repo "${tap}")"
-        destination="${tap_dir}/${PATHNAME_HOMEBREW_FORMULA}"
-        mkdir -p "$(dirname "${destination}")"
-
-        echo "::debug::Locally overwriting old formula with newly generated candidate formula"
-        cp "${PATHNAME_FORMULA_FILE}" "${destination}"
-
-        echo "::debug::Trusting tap: ${tap}"
-        brew trust --tap ${tap}
-
-        echo "::debug::Brew audit using formula name: ${FORMULA_NAME}"
-        brew audit --strict --formula "${tap}/${FORMULA_NAME}"
-
-    - name: "Update Homebrew Repository"
+    - name: "Install and test generated Homebrew formula locally"
       shell: "bash"
       env:
-        GH_TOKEN: "${{ steps.app-token.outputs.token }}"
-        HOMEBREW_REPO_OWNER: "${{ inputs.homebrew_repo_owner }}"
-        HOMEBREW_REPO: "${{ steps.homebrew-repo.outputs.name }}"
-        PATHNAME_HOMEBREW_FORMULA: "${{ inputs.pathname_homebrew_formula }}"
-        RELEASE_TAG: "${{ inputs.release_tag }}"
-        PATHNAME_TEMPLATED_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
-        BINARY_NAME: "${{ inputs.binary_name }}"
+        HOMEBREW_DEVELOPER: "1"
+        HOMEBREW_NO_AUTO_UPDATE: "1"
+        PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
       run: |-
         set -euo pipefail
+        # Install from the generated local file, not from a Homebrew tap.
+        brew install --formula "${PATHNAME_FORMULA_FILE}"
+        brew test "${PATHNAME_FORMULA_FILE}"
 
-        repo="$HOMEBREW_REPO_OWNER/$HOMEBREW_REPO"
-        SHA=$(gh api \
-          "repos/$repo/contents/$PATHNAME_HOMEBREW_FORMULA" \
-          --jq '.sha')
-
-        test -s "${PATHNAME_TEMPLATED_FORMULA_FILE}"
-        CONTENT=$(base64 -w0 ${PATHNAME_TEMPLATED_FORMULA_FILE})
-
-        gh api \
-          --method PUT \
-          "repos/$repo/contents/$PATHNAME_HOMEBREW_FORMULA" \
-          -f message="chore(homebrew): update ${BINARY_NAME} to $RELEASE_TAG" \
-          -f content="$CONTENT" \
-          -f sha="$SHA"
+    - name: "Upload Formula File"
+      id: "upload-formula"
+      uses: "actions/upload-artifact@v7.0.2"
+      with:
+        name: "homebrew-formula-${{ inputs.binary_name }}-${{ github.sha }}"
+        path: "${{ steps.generate.outputs.pathname_formula_file }}"
+        archive: true
+        overwrite: true
+        if-no-files-found: "error"
