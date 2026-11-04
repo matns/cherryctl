@@ -58,7 +58,7 @@ jobs:
       # Pass ld flags injectables as a JSON list of linker flag literals
       ld_flags_variable_injectables: >-
         [
-          "-X github.com/${{ needs.fact-finding.outputs.finding_go_module }}/cmd.Version=${{ github.ref_name }}"
+          "-X {{ needs.fact-finding.outputs.finding_go_module }}/cmd.Version=${{ github.ref_name }}"
         ]
       artifact_id_third_party_licenses: "${{ needs.compile-third-party-licenses.outputs.artifact_id_third_party_licenses }}"
 
