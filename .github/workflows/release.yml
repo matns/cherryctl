@@ -62,6 +62,17 @@ jobs:
     with:
       ref: "${{ github.sha }}"
 
+  compile-release-notes:
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        github.ref_type == 'tag' &&
+        github.ref_protected == true
+      }}
+    permissions:
+      contents: "read"
+    uses: "$/.github/workflows/release-compile-notes.yml"
+
   compile-packages:
     if: >-
       ${{
@@ -108,7 +119,7 @@ jobs:
          github.ref_protected == true
       }}
     environment: "publish-github-release"
-    needs: ["compile-packages", "generate-source-sboms"]
+    needs: ["compile-packages", "compile-release-notes", "generate-source-sboms"]
     runs-on: "ubuntu-latest"
     permissions:
       contents: "write"
@@ -137,6 +148,7 @@ jobs:
           ROOT_DIR="$(mktemp -d)"
           INPUTS_DIR="${ROOT_DIR}/inputs"
           PACKAGES_DIR="${INPUTS_DIR}/packages"
+          NOTES_DIR="${INPUTS_DIR}/notes"
           SBOMS_DIR="${INPUTS_DIR}/sboms"
           STAGING_DIR="${ROOT_DIR}/staging"
           METADATA_DIR="${ROOT_DIR}/metadata"
@@ -144,6 +156,7 @@ jobs:
 
           mkdir -p \
             "$PACKAGES_DIR" \
+            "$NOTES_DIR" \
             "$SBOMS_DIR" \
             "$STAGING_DIR" \
             "$METADATA_DIR" \
@@ -156,6 +169,7 @@ jobs:
           {
             echo "root_dir=${ROOT_DIR}"
             echo "packages_dir=${PACKAGES_DIR}"
+            echo "notes_dir=${NOTES_DIR}"
             echo "sboms_dir=${SBOMS_DIR}"
             echo "staging_dir=${STAGING_DIR}"
             echo "metadata_dir=${METADATA_DIR}"
@@ -164,6 +178,12 @@ jobs:
             echo "pathname_checksums=${PATHNAME_CHECKSUMS}"
             echo "pathname_signature_bundle=${PATHNAME_SIGNATURE_BUNDLE}"
           } >> "$GITHUB_OUTPUT"
+
+      - name: "Fetch release notes artifact"
+        uses: "actions/download-artifact@v8.0.2"
+        with:
+          artifact-ids: "${{ needs.compile-release-notes.outputs.artifact_id_release_notes }}"
+          path: "${{ steps.prepare.outputs.notes_dir }}"
 
       - name: "Fetch release package artifacts"
         uses: "actions/download-artifact@v8.0.2"
@@ -297,12 +317,19 @@ jobs:
         env:
           GH_TOKEN: "${{ github.token }}"
           DIST_DIR: "${{ steps.prepare.outputs.dist_dir }}"
+          PATHNAME_RELEASE_NOTES: "${{ steps.prepare.outputs.notes_dir }}/${{ needs.compile-release-notes.outputs.filename_release_notes }}"
         run: |-
           set -euo pipefail
+
+          if [[ ! -s "$PATHNAME_RELEASE_NOTES" ]]; then
+            echo "::error::Release notes file is missing or empty: $PATHNAME_RELEASE_NOTES"
+            exit 1
+          fi
 
           gh release create "$RELEASE_TAG" "$DIST_DIR"/* \
             --repo "$GITHUB_REPOSITORY" \
             --title "$RELEASE_TAG" \
+            --notes-file "$PATHNAME_RELEASE_NOTES" \
             --verify-tag
 
       - name: "Get checksums asset ID and output"
