@@ -239,6 +239,7 @@ jobs:
           release_asset_id_checksums_file: "${{ needs.publish-release.outputs.release_asset_id_checksums_file }}"
 
   deploy-homebrew-formula:
+    needs: ["prepare-homebrew-formula"]
     if: >-
       ${{
         github.event_name == 'push' &&
