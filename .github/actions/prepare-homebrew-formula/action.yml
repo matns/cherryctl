@@ -231,6 +231,9 @@ runs:
         run: |-
           set -euo pipefail
 
+          # fix up ownership
+          sudo chown -R "$(id -u):$(id -g)" /home/linuxbrew
+
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
           echo 'eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"' >> ~/.bashrc
 
