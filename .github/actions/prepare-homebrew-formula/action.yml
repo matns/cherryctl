@@ -225,15 +225,17 @@ runs:
         rootfs-image: "ghcr.io/homebrew/brew:7.0.12@sha256:1b85f3ae0e6eb7f1d77326143a99d5b1f201f6c63a88c8dac3e1e042801dafe7"
         disable-network: "true"
         env: |-
-          HOMEBREW_DEVELOPER: "1"
-          HOMEBREW_NO_AUTO_UPDATE: "1"
-          PATHNAME_FORMULA_FILE: "${{ steps.generate.outputs.pathname_formula_file }}"
+          HOMEBREW_DEVELOPER="1"
+          HOMEBREW_NO_AUTO_UPDATE="1"
+          PATHNAME_FORMULA_FILE="${{ steps.generate.outputs.pathname_formula_file }}"
         run: |-
           set -euo pipefail
+
+          export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
+
           echo "::debug::Brew version: $(brew --version)"
 
-          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+          eval "$(brew shellenv)"
 
           # Install from the generated local file, not from a Homebrew tap.
           brew install --formula "${PATHNAME_FORMULA_FILE}"
