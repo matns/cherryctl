@@ -37,7 +37,7 @@ jobs:
       - name: "Find Go module"
         id: "find-go-module"
         shell: "bash"
-        run: |
+        run: |-
           set -euo pipefail
 
           go_module="$(go list -m)"
@@ -65,7 +65,7 @@ jobs:
       }}
     needs: ["fact-finding", "compile-third-party-licenses"]
     permissions:
-      contents: read
+      contents: "read"
     uses: "$/.github/workflows/release-compile-packages.yml"
     with:
       repository: "${{ github.repository }}"
@@ -108,7 +108,7 @@ jobs:
       - name: "Prepare temporary directories"
         id: "prepare"
         shell: "bash"
-        run: |
+        run: |-
           set -euo pipefail
 
           ROOT_DIR="$(mktemp -d)"
@@ -146,26 +146,26 @@ jobs:
         uses: "actions/download-artifact@v8.0.2"
         with:
           pattern: "release-tarballs-${{ github.ref_name }}-*"
-          path: ${{ steps.prepare.outputs.packages_dir }}
+          path: "${{ steps.prepare.outputs.packages_dir }}"
           merge-multiple: false
 
-      - name: Set up Go
-        uses: actions/setup-go@v6.5.0
+      - name: "Set up Go"
+        uses: "actions/setup-go@v6.5.0"
         with:
-          go-version-file: go.mod
+          go-version-file: "go.mod"
           cache: false
 
-      - name: Install Syft
-        shell: bash
-        run: |
+      - name: "Install Syft"
+        shell: "bash"
+        run: |-
           set -euo pipefail
           go install github.com/anchore/syft/cmd/syft@b254e6d92f28c3868a755f62fb3ca8f26e9fee76
 
-      - name: Generate source SBOMs
-        shell: bash
+      - name: "Generate source SBOMs"
+        shell: "bash"
         env:
-          SBOMS_DIR: ${{ steps.prepare.outputs.sboms_dir }}
-        run: |
+          SBOMS_DIR: "${{ steps.prepare.outputs.sboms_dir }}"
+        run: |-
           set -euo pipefail
 
           SYFT="$(go env GOPATH)/bin/syft"
@@ -187,7 +187,7 @@ jobs:
           PACKAGES_DIR: "${{ steps.prepare.outputs.packages_dir }}"
           SBOMS_DIR: "${{ steps.prepare.outputs.sboms_dir }}"
           STAGING_DIR: "${{ steps.prepare.outputs.staging_dir }}"
-        run: |
+        run: |-
           set -euo pipefail
 
           for source_dir in "$PACKAGES_DIR" "$SBOMS_DIR"; do
@@ -212,33 +212,33 @@ jobs:
           find "$STAGING_DIR" -maxdepth 1 -type f -printf '%f\n' | sort
           echo "::endgroup::"
 
-      - name: Generate release checksums
-        shell: bash
-        working-directory: ${{ steps.prepare.outputs.staging_dir }}
+      - name: "Generate release checksums"
+        shell: "bash"
+        working-directory: "${{ steps.prepare.outputs.staging_dir }}"
         env:
-          PATHNAME_CHECKSUMS: ${{ steps.prepare.outputs.pathname_checksums }}
-        run: |
+          PATHNAME_CHECKSUMS: "${{ steps.prepare.outputs.pathname_checksums }}"
+        run: |-
           set -euo pipefail
 
           sha256sum -- * > "$PATHNAME_CHECKSUMS"
           sha256sum --check --strict "$PATHNAME_CHECKSUMS"
 
-      - name: Generate build provenance attestation
-        id: attest
-        uses: actions/attest@v4.1.0
+      - name: "Generate build provenance attestation"
+        id: "attest"
+        uses: "actions/attest@v4.1.0"
         with:
-          subject-checksums: ${{ steps.prepare.outputs.pathname_checksums }}
+          subject-checksums: "${{ steps.prepare.outputs.pathname_checksums }}"
           show-summary: true
 
-      - name: Set up Cosign
-        uses: sigstore/cosign-installer@v4.1.2
+      - name: "Set up Cosign"
+        uses: "sigstore/cosign-installer@v4.1.2"
 
-      - name: Sign release checksums
-        shell: bash
+      - name: "Sign release checksums"
+        shell: "bash"
         env:
-          PATHNAME_CHECKSUMS: ${{ steps.prepare.outputs.pathname_checksums }}
-          PATHNAME_SIGNATURE_BUNDLE: ${{ steps.prepare.outputs.pathname_signature_bundle }}
-        run: |
+          PATHNAME_CHECKSUMS: "${{ steps.prepare.outputs.pathname_checksums }}"
+          PATHNAME_SIGNATURE_BUNDLE: "${{ steps.prepare.outputs.pathname_signature_bundle }}"
+        run: |-
           set -euo pipefail
 
           cosign sign-blob \
@@ -249,12 +249,12 @@ jobs:
       - name: "Assemble DIST_DIR"
         shell: "bash"
         env:
-          STAGING_DIR: ${{ steps.prepare.outputs.staging_dir }}
-          DIST_DIR: ${{ steps.prepare.outputs.dist_dir }}
-          PATHNAME_CHECKSUMS: ${{ steps.prepare.outputs.pathname_checksums }}
-          PATHNAME_SIGNATURE_BUNDLE: ${{ steps.prepare.outputs.pathname_signature_bundle }}
-          FILENAME_CHECKSUMS: ${{ steps.prepare.outputs.filename_checksums }}
-        run: |
+          STAGING_DIR: "${{ steps.prepare.outputs.staging_dir }}"
+          DIST_DIR: "${{ steps.prepare.outputs.dist_dir }}"
+          PATHNAME_CHECKSUMS: "${{ steps.prepare.outputs.pathname_checksums }}"
+          PATHNAME_SIGNATURE_BUNDLE: "${{ steps.prepare.outputs.pathname_signature_bundle }}"
+          FILENAME_CHECKSUMS: "${{ steps.prepare.outputs.filename_checksums }}"
+        run: |-
           set -euo pipefail
 
           if [[ -n "$(find "$DIST_DIR" -mindepth 1 -print -quit)" ]]; then
@@ -301,7 +301,7 @@ jobs:
         env:
           GH_TOKEN: "${{ github.token }}"
           DIST_DIR: "${{ steps.prepare.outputs.dist_dir }}"
-        run: |
+        run: |-
           set -euo pipefail
 
           gh release create "$RELEASE_TAG" "$DIST_DIR"/* \
@@ -309,13 +309,13 @@ jobs:
             --title "$RELEASE_TAG" \
             --verify-tag
 
-      - name: Get checksums asset ID and output
-        id: output-checksums-asset-id
-        shell: bash
+      - name: "Get checksums asset ID and output"
+        id: "output-checksums-asset-id"
+        shell: "bash"
         env:
-          GH_TOKEN: ${{ github.token }}
-          FILENAME_CHECKSUMS: ${{ steps.prepare.outputs.filename_checksums }}
-        run: |
+          GH_TOKEN: "${{ github.token }}"
+          FILENAME_CHECKSUMS: "${{ steps.prepare.outputs.filename_checksums }}"
+        run: |-
           set -euo pipefail
 
           asset_id="$(
@@ -340,25 +340,25 @@ jobs:
         github.ref_type == 'tag' &&
         github.ref_protected == true
       }}
-    name: Generate Homebrew Formula
+    name: "Generate Homebrew Formula"
     needs:
-      - publish-release
-    runs-on: ubuntu-latest
+      - "publish-release"
+    runs-on: "ubuntu-latest"
     permissions:
-      contents: read
+      contents: "read"
     steps:
-      - name: Checkout repository for local action
-        uses: actions/checkout@v7.0.1
+      - name: "Checkout repository for local action"
+        uses: "actions/checkout@v7.0.1"
 
-      - name: Prepare Homebrew formula
-        uses: $/.github/actions/prepare-homebrew-formula
+      - name: "Prepare Homebrew formula"
+        uses: "$/.github/actions/prepare-homebrew-formula"
         with:
-          binary_name: cherryctl
-          license: MPL-2.0
-          release_tag: ${{ github.ref_name }}
-          releases_repo_name: ${{ github.event.repository.name }}
-          releases_repo_owner: ${{ github.repository_owner }}
-          release_asset_id_checksums_file: ${{ needs.publish-release.outputs.release_asset_id_checksums_file }}
+          binary_name: "cherryctl"
+          license: "MPL-2.0"
+          release_tag: "${{ github.ref_name }}"
+          releases_repo_name: "${{ github.event.repository.name }}"
+          releases_repo_owner: "${{ github.repository_owner }}"
+          release_asset_id_checksums_file: "${{ needs.publish-release.outputs.release_asset_id_checksums_file }}"
 
   deploy-homebrew-formula:
     if: >-
@@ -368,22 +368,22 @@ jobs:
         github.ref_protected == true
       }}
     needs:
-      - prepare-homebrew-formula
-    runs-on: ubuntu-latest
+      - "prepare-homebrew-formula"
+    runs-on: "ubuntu-latest"
     permissions:
-      contents: read
-    environment: publish-homebrew-formula
+      contents: "read"
+    environment: "publish-homebrew-formula"
     steps:
-      - name: Checkout repository for local action
-        uses: actions/checkout@v7.0.1
+      - name: "Checkout repository for local action"
+        uses: "actions/checkout@v7.0.1"
 
-      - name: Publish Homebrew formula
-        uses: $/.github/actions/update-homebrew-tap-with-formula
+      - name: "Publish Homebrew formula"
+        uses: "$/.github/actions/update-homebrew-tap-with-formula"
         with:
-          binary_name: cherryctl
-          release_tag: ${{ github.ref_name }}
-          homebrew_repo_name: homebrew-${{ github.event.repository.name }}
-          homebrew_repo_owner: ${{ github.repository_owner }}
-          pathname_homebrew_formula: Formula/cherryctl.rb
-          formula_updater_app_client_id: ${{ vars.FORMULA_UPDATER_APP_CLIENT_ID }}
-          secret_formula_updater_app_private_key: ${{ secrets.FORMULA_UPDATER_APP_PRIVKEY }}
+          binary_name: "cherryctl"
+          release_tag: "${{ github.ref_name }}"
+          homebrew_repo_name: "homebrew-${{ github.event.repository.name }}"
+          homebrew_repo_owner: "${{ github.repository_owner }}"
+          pathname_homebrew_formula: "Formula/cherryctl.rb"
+          formula_updater_app_client_id: "${{ vars.FORMULA_UPDATER_APP_CLIENT_ID }}"
+          secret_formula_updater_app_private_key: "${{ secrets.FORMULA_UPDATER_APP_PRIVKEY }}"
