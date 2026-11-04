@@ -139,7 +139,7 @@ runs:
         class ${FORMULA_NAME} < Formula
           desc "Official Cherry Servers CLI"
           homepage "https://www.cherryservers.com/"
-          license "${LICENSE}" # MPL 2.0
+          license "${LICENSE}"
 
           livecheck do
             url :stable

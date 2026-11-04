@@ -50,6 +50,12 @@ jobs:
           echo "go_module=$go_module" >> "$GITHUB_OUTPUT"
 
   compile-third-party-licenses:
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        github.ref_type == 'tag' &&
+        github.ref_protected == true
+      }}
     permissions:
       contents: "read"
     uses: "$/.github/workflows/release-compile-third-party-licenses.yml"
@@ -339,7 +345,6 @@ jobs:
         github.ref_type == 'tag' &&
         github.ref_protected == true
       }}
-    name: "Generate Homebrew Formula"
     needs:
       - "publish-release"
     runs-on: "ubuntu-latest"
