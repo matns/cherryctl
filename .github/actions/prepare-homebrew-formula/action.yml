@@ -212,7 +212,12 @@ runs:
          env: |-
            PATHNAME_FORMULA_FILE=${{ steps.generate.outputs.pathname_formula_file }}
          run: |-
-           ruby -c "${PATHNAME_FORMULA_FILE}"
+           if ruby -c "${PATHNAME_FORMULA_FILE}"; then
+             echo "::notice::Ruby syntax validation passed"
+           else
+             echo "::error::Ruby syntax validation failed: ${PATHNAME_FORMULA_FILE}"
+             exit 1
+           fi
 
     - name: "Ensure Brew In Path"
       shell: "bash"
