@@ -113,7 +113,7 @@ runs:
         RELEASE_TAG: "${{ inputs.release_tag }}"
         BINARY_NAME: "${{ inputs.binary_name }}"
         FORMULA_DIRECTORY: "${{ runner.temp }}/homebrew-formula"
-      run: |
+      run: |-
         set -euo pipefail
 
         repo="${HOMEBREW_REPO_OWNER}/${HOMEBREW_REPO_NAME}"
