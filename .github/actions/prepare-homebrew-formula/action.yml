@@ -80,7 +80,7 @@ runs:
         RELEASE_ASSET_ID_CHECKSUMS: "${{ inputs.release_asset_id_checksums_file }}"
         RELEASE_REPO: "${{ inputs.releases_repo_owner }}/${{ inputs.releases_repo_name }}"
       run: |
-        dir=$(mktemp -d "${GITHUB_WORKSPACE}/temp.XXXXXXX")
+        dir=$(mktemp -d "${GITHUB_WORKSPACE}/temp.XXXXXXXXX")
         echo "::debug::dir: ${dir}"
 
         pathname_checksums="${dir}/$(openssl rand -hex 32)"
@@ -128,7 +128,7 @@ runs:
         LINUX_AMD64=$(checksum "${BINARY_NAME}-${TAG}-linux-amd64-gnu.tar.gz")
         LINUX_ARM64=$(checksum "${BINARY_NAME}-${TAG}-linux-arm64-static.tar.gz")
 
-        dir=$(mktemp -d)
+        dir=$(mktemp -d "${GITHUB_WORKSPACE}/temp.XXXXXXXXX")
         PATHNAME_FORMULA_FILE="${dir}/${BINARY_NAME}.rb"
         FORMULA_NAME="$(capitalize ${BINARY_NAME})"
 
