@@ -32,7 +32,16 @@ jobs:
         id: find-go-module
         shell: bash
         run: |
-          echo "go_module=$(go list -m)" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
+
+          go_module="$(go list -m)"
+
+          if [[ -z "$go_module" ]]; then
+            echo "::error::Go module path is empty"
+            exit 1
+          fi
+
+          echo "go_module=$go_module" >> "$GITHUB_OUTPUT"
 
   compile-third-party-licenses:
     name: "Compile: Third Party Licenses"
