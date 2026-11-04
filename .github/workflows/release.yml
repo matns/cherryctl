@@ -159,7 +159,7 @@ jobs:
         id: "attest"
         uses: "actions/attest@v4.1.0"
         with:
-          subject-checksums: "${{ steps.prepare.outputs.dist_dir }}/${{ steps.prepare.outputs.pathname_checksums }}"
+          subject-checksums: "${{ steps.prepare.outputs.pathname_checksums }}"
           show-summary: true
 
       - name: Set up sigstore/cosign-installer
