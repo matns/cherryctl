@@ -196,14 +196,14 @@ jobs:
         shell: "bash"
         env:
           GH_TOKEN: "${{ github.token }}"
-          PATHNAME_CHECKSUMS: "${{ steps.prepare.outputs.pathname_checksums }}"
+          FILENAME_CHECKSUMS: "${{ steps.prepare.outputs.filename_checksums }}"
         run: |
           set -euo pipefail
 
           asset_id=$(
             gh api \
               "repos/${GITHUB_REPOSITORY}/releases/tags/${GITHUB_REF_NAME}" |
-              jq -r --arg filename "$PATHNAME_CHECKSUMS" \
+              jq -r --arg filename "$FILENAME_CHECKSUMS" \
                 '.assets[] | select(.name == $filename) | .id'
           )
 
