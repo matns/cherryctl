@@ -81,6 +81,7 @@ runs:
         RELEASE_REPO: "${{ inputs.releases_repo_owner }}/${{ inputs.releases_repo_name }}"
       run: |
         dir=$(mktemp -d "${GITHUB_WORKSPACE}/temp.XXXXXXX")
+        echo "::debug::dir: ${dir}"
 
         pathname_checksums="${dir}/$(openssl rand -hex 32)"
         gh api "repos/${RELEASE_REPO}/releases/assets/${RELEASE_ASSET_ID_CHECKSUMS}" \
