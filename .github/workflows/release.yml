@@ -10,6 +10,26 @@ concurrency:
   queue: max
 permissions: {}
 jobs:
+  fact-finding:
+    runs-on: "ubuntu-latest"
+    permissions:
+      contents: "read"
+    outputs:
+      finding_go_module: "${{ steps.find-go-module.outputs.go_module }}"
+    steps:
+      - name: "Checkout"
+        uses: "actions/checkout@v7.0.1"
+        with:
+          ref: "${{ github.sha }}"
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: "Find Go Module"
+        id: "find-go-module"
+        shell: "bash"
+        run: |-
+          echo "go_module=$(go list -m)" >> "$GITHUB_OUTPUT"
+
   compile-third-party-licenses:
     name: "Compile: Third Party Licenses"
     permissions:
@@ -26,7 +46,8 @@ jobs:
 
   compile-packages:
     name: "Compile: Release Packages (tarballs)"
-    needs: "compile-third-party-licenses"
+    # needs: ["compile-third-party-licenses", "fact-finding"]
+    needs: ["fact-finding"]
     permissions:
       contents: "read"
     uses: "$/.github/workflows/release-compile-packages.yml"
@@ -38,7 +59,7 @@ jobs:
       # Pass ld flags injectables as a JSON list of linker flag literals
       ld_flags_variable_injectables: >-
         [
-          "-X github.com/${{ github.repository }}/cmd.Version=${{ github.ref_name }}"
+          "-X github.com/${{ needs.fact-finding.outputs.finding_go_module }}/cmd.Version=${{ github.ref_name }}"
         ]
       artifact_id_third_party_licenses: "${{ needs.compile-third-party-licenses.outputs.artifact_id_third_party_licenses }}"
 

@@ -102,6 +102,7 @@ jobs:
           fi
 
           echo "::debug::Using LD_FLAGS_VARIABLE_INJECTABLES=${LD_FLAGS_VARIABLE_INJECTABLES}"
+
           go build \
             -trimpath \
             -ldflags "${LD_FLAGS_VARIABLE_INJECTABLES} ${LD_FLAGS_TARGET}" \
