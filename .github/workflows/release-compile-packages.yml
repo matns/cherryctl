@@ -47,15 +47,12 @@ jobs:
           - {GOOS: "darwin", GOARCH: "amd64", TARGET: "darwin-amd64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_darwin.go", runner: "ubuntu-latest"}
           - {GOOS: "darwin", GOARCH: "arm64", TARGET: "darwin-arm64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_darwin.go", runner: "ubuntu-latest"}
     env:
-      BINARY_NAME: ${{ inputs.binary_name }}
       SOURCE_NAME: "${{ inputs.repository }}"
     runs-on: "${{ matrix.runner }}"
     steps:
       - name: "Checkout"
         uses: "actions/checkout@v7.0.1"
         with:
-          repository: "${{ inputs.repository }}"
-          ref: "${{ inputs.ref }}"
           fetch-depth: 0
           persist-credentials: false
 
@@ -94,8 +91,9 @@ jobs:
           CGO_CFLAGS: "${{ matrix.CGO_CFLAGS }}"
           CGO_LDFLAGS: "${{ matrix.CGO_LDFLAGS }}"
           DIR: "${{ steps.prepare.outputs.dir }}"
+          BINARY_NAME: ${{ inputs.binary_name }}
         run: |
-          binary_name="$BINARY_NAME"
+          binary_name="${BINARY_NAME}"
           if [[ "$GOOS" == "windows" ]]; then
                 binary_name="${binary_name}.exe"
           fi

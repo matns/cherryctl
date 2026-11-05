@@ -4,12 +4,6 @@ name: "Generate source SBOMs"
 on:
   workflow_call:
     inputs:
-      repository:
-        required: true
-        type: "string"
-      ref:
-        required: true
-        type: "string"
       source_name:
         required: true
         type: "string"
@@ -30,8 +24,6 @@ jobs:
       - name: "Checkout"
         uses: "actions/checkout@v7.0.1"
         with:
-          repository: "${{ inputs.repository }}"
-          ref: "${{ inputs.ref }}"
           fetch-depth: 0
           persist-credentials: false
 
