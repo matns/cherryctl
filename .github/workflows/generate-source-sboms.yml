@@ -65,7 +65,7 @@ jobs:
       - name: "Upload source SBOMs"
         uses: "actions/upload-artifact@v7.0.2"
         with:
-          name: "release-source-sboms-${{ inputs.ref }}"
+          name: "release-source-sboms-${{ github.sha }}"
           path: "${{ steps.generate.outputs.sboms_dir }}"
           if-no-files-found: error
           retention-days: 1
