@@ -32,7 +32,6 @@ jobs:
       - name: "Checkout"
         uses: "actions/checkout@v7.0.1"
         with:
-          repository: "${{ github.repository }}"
           ref: "${{ inputs.ref }}"
           fetch-depth: 0
           persist-credentials: false
