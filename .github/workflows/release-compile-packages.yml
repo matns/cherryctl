@@ -141,8 +141,7 @@ jobs:
         id: archive
         env:
           GOOS: "${{ matrix.GOOS }}"
-          BINARY_NAME: ${{ inputs.binary_name }}
-          ARCHIVE_NAME: "${{ format('{0}-{1}-{2}', env.BINARY_NAME, github.ref_name, matrix.TARGET) }}"
+          ARCHIVE_NAME: "${{ format('{0}-{1}-{2}', inputs.binary_name, github.ref_name, matrix.TARGET) }}"
           DIST_DIR: "${{ steps.prepare.outputs.dist_dir }}"
           DIR: "${{ steps.prepare.outputs.dir }}"
         shell: "bash"
