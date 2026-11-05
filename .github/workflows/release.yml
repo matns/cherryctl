@@ -106,8 +106,6 @@ jobs:
       contents: "read"
     uses: "$/.github/workflows/generate-source-sboms.yml"
     with:
-      repository: "${{ github.repository }}"
-      ref: "${{ github.sha }}"
       source_name: "${{ github.event.repository.name }}"
       release_tag: "${{ github.ref_name }}"
 
