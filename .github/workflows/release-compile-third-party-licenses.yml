@@ -85,13 +85,14 @@ jobs:
       - name: "Compile"
         id: "compile"
         shell: "bash"
+        working-directory: "${{ steps.prepare.outputs.pathname_target_repo_checkout }}"
         env:
           DIR: "${{ steps.prepare.outputs.dir }}"
           FILE_NAME: "${{ steps.prepare.outputs.filename_third_party_licenses }}"
           PATHNAME_TARGET_REPO_CHECKOUT: "${{ steps.prepare.outputs.pathname_target_repo_checkout }}"
         # Generate the third party licenses file. Make go-licenses ignore the module itself, since license of module goes into separate file
         run: |
-          "$(go env GOPATH)/bin/go-licenses" report "${PATHNAME_TARGET_REPO_CHECKOUT}" \
+          "$(go env GOPATH)/bin/go-licenses" report "." \
             --ignore="$(go list -m)" \
             --template="${PATHNAME_TARGET_REPO_CHECKOUT}/licenses.tpl" \
             > "$DIR/$FILE_NAME"
