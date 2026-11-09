@@ -29,22 +29,26 @@ jobs:
       filename_third_party_licenses: "${{ steps.prepare.outputs.filename_third_party_licenses }}"
       artifact_id_third_party_licenses: "${{ steps.upload.outputs.artifact-id }}"
     steps:
-      - name: "Checkout"
-        uses: "actions/checkout@v7.0.1"
-        with:
-          ref: "${{ inputs.ref }}"
-          fetch-depth: 0
-          persist-credentials: false
-
       - name: "Prepare"
         id: "prepare"
         shell: "bash"
         run: |
           DIR=$(mktemp -d)
           FILE_NAME="THIRD_PARTY_LICENSES.txt"
-
           echo "dir=$DIR" >> "$GITHUB_OUTPUT"
           echo "filename_third_party_licenses=$FILE_NAME" >> "$GITHUB_OUTPUT"
+
+          mkdir -p "$GITHUB_WORKSPACE/checkouts"
+          PATHNAME_TARGET_REPO_CHECKOUT="$(mktemp -d "$GITHUB_WORKSPACE/checkouts/XXXXXXXXXX")"
+          echo "pathname_target_repo_checkout=${PATHNAME_TARGET_REPO_CHECKOUT}" >> "$GITHUB_OUTPUT"
+
+      - name: "Checkout"
+        uses: "actions/checkout@v7.0.1"
+        with:
+          ref: "${{ inputs.ref }}"
+          path: "${{ steps.prepare.outputs.pathname_target_repo_checkout }}"
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: "Ensure Checked Out Head Matches Release Tag"
         shell: "bash"
@@ -83,11 +87,12 @@ jobs:
         env:
           DIR: "${{ steps.prepare.outputs.dir }}"
           FILE_NAME: "${{ steps.prepare.outputs.filename_third_party_licenses }}"
+          PATHNAME_TARGET_REPO_CHECKOUT: "${{ steps.prepare.outputs.pathname_target_repo_checkout }}"
         # Generate the third party licenses file. Make go-licenses ignore the module itself, since license of module goes into separate file
         run: |
-          "$(go env GOPATH)/bin/go-licenses" report "${GITHUB_WORKSPACE}/" \
+          "$(go env GOPATH)/bin/go-licenses" report "${PATHNAME_TARGET_REPO_CHECKOUT}/" \
             --ignore="$(go list -m)" \
-            --template="${GITHUB_WORKSPACE}/licenses.tpl" \
+            --template="${PATHNAME_TARGET_REPO_CHECKOUT}/licenses.tpl" \
             > "$DIR/$FILE_NAME"
 
           test -s "$DIR/$FILE_NAME"

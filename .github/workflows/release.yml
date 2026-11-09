@@ -400,6 +400,8 @@ jobs:
     steps:
       - name: "Checkout repository for local action"
         uses: "actions/checkout@v7.0.1"
+        with:
+          persist-credentials: false
 
       - name: "Publish Homebrew formula"
         uses: "$/.github/actions/update-homebrew-tap-with-formula"
