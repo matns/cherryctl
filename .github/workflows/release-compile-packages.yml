@@ -111,7 +111,7 @@ jobs:
           DIR: "${{ steps.prepare.outputs.dir }}"
           FILENAME_LICENSE: "${{ inputs.filename_license }}"
         run: |
-          cp "${{ github.workspace }}/${FILENAME_LICENSE}" "$DIR/${FILENAME_LICENSE}"
+          cp "${GITHUB_WORKSPACE}/${FILENAME_LICENSE}" "$DIR/${FILENAME_LICENSE}"
 
       - name: "Validate release third party licenses"
         shell: bash
