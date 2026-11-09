@@ -21,7 +21,6 @@ on:
         description: "Filename of the license file (e.g. LICENSE.md)"
       ld_flags_variable_injectables:
         type: "string"
-        required: true
         description: "List of ld flags variable injectables"
         default: "[]"
       artifact_id_third_party_licenses:
