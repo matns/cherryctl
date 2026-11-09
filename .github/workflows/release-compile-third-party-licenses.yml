@@ -85,9 +85,9 @@ jobs:
           FILE_NAME: "${{ steps.prepare.outputs.filename_third_party_licenses }}"
         # Generate the third party licenses file. Make go-licenses ignore the module itself, since license of module goes into separate file
         run: |
-          "$(go env GOPATH)/bin/go-licenses" report "${{ github.workspace }}/" \
+          "$(go env GOPATH)/bin/go-licenses" report "${GITHUB_WORKSPACE}/" \
             --ignore="$(go list -m)" \
-            --template="${{ github.workspace }}/licenses.tpl" \
+            --template="${GITHUB_WORKSPACE}/licenses.tpl" \
             > "$DIR/$FILE_NAME"
 
           test -s "$DIR/$FILE_NAME"
