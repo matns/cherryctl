@@ -105,11 +105,12 @@ runs:
         RELEASES_REPO_NAME: "${{ inputs.releases_repo_name }}"
         BINARY_NAME: "${{ inputs.binary_name }}"
         LICENSE: "${{ inputs.license }}"
+        PATHNAME_CHECKSUMS: "${{ steps.prepare-download-output.outputs.pathname_checksums }}"
       run: |
         set -euo pipefail
 
         TAG="$RELEASE_TAG"
-        PATHNAME_CHECKSUMS="${{ steps.prepare-download-output.outputs.pathname_checksums }}"
+
 
         checksum() {
           awk -v file="$1" '
