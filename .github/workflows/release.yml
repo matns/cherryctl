@@ -121,7 +121,9 @@ jobs:
     runs-on: "ubuntu-latest"
     permissions:
       contents: "write"
+      # So that we can obtain Sigstore certificate with GHA token (OIDC)
       id-token: "write"
+      # So that we can write attestations after generating GitHub-native build provenance
       attestations: "write"
       artifact-metadata: "write"
     outputs:
@@ -369,6 +371,8 @@ jobs:
     steps:
       - name: "Checkout repository for local action"
         uses: "actions/checkout@v7.0.1"
+        with:
+          persist-credentials: false
 
       - name: "Prepare Homebrew formula"
         uses: "$/.github/actions/prepare-homebrew-formula"
