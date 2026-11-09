@@ -52,6 +52,7 @@ jobs:
 
       - name: "Ensure Checked Out Head Matches Release Tag"
         shell: "bash"
+        working-directory: "${{ steps.prepare.outputs.pathname_target_repo_checkout }}"
         run: |-
           HEAD_SHA="$(git rev-parse --verify 'HEAD^{commit}')"
           TAG_SHA="$(git rev-parse --verify "${GITHUB_REF}^{commit}")"
