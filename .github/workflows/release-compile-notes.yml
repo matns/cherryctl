@@ -95,8 +95,8 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           RELEASE_NOTES_PATH: "${{ steps.prepare.outputs.release_notes_path }}"
         run: |
-          test -s "${{ github.workspace }}/cliff.toml"
-          git cliff --no-exec --current --config "${{ github.workspace }}/cliff.toml" --output "$RELEASE_NOTES_PATH"
+          test -s "${GITHUB_WORKSPACE}/cliff.toml"
+          git cliff --no-exec --current --config "${GITHUB_WORKSPACE}/cliff.toml" --output "$RELEASE_NOTES_PATH"
 
       - name: "Upload release notes"
         id: "upload-release-notes"
