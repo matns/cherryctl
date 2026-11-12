@@ -181,6 +181,7 @@ jobs:
       matrix: *release_targets
     uses: "$/.github/workflows/release-compile-third-party-licenses.yml"
     with:
+      pathname_package: "${{ inputs.pathname_package }}"
       ref: "${{ inputs.ref }}"
       target: "${{ matrix.TARGET }}"
       goos: "${{ matrix.GOOS }}"
