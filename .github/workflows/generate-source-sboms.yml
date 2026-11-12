@@ -69,4 +69,4 @@ jobs:
           name: "release-source-sboms-${{ github.sha }}"
           path: "${{ steps.generate.outputs.sboms_dir }}"
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 14
