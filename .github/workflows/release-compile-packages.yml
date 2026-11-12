@@ -23,6 +23,11 @@ on:
         type: "string"
         description: "List of ld flags variable injectables"
         default: "[]"
+      pathname_package:
+        type: "string"
+        required: true
+        description: "Path to go package to build (e.g. `.` or `cmd/myapp`)"
+
 permissions: {}
 jobs:
   build-binaries:
@@ -36,15 +41,15 @@ jobs:
       fail-fast: true
       matrix: &release_targets
         include:
-          - {GOOS: "linux", GOARCH: "amd64", TARGET: "linux-amd64-static", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_linux.go", runner: "ubuntu-latest"}
+          - {GOOS: "linux", GOARCH: "amd64", TARGET: "linux-amd64-static", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", runner: "ubuntu-latest"}
           - {GOOS: "linux", GOARCH: "amd64", TARGET: "linux-amd64-gnu", CGO_ENABLED: "1",
             # Shadow Stack Support
-            CGO_CFLAGS: "-fcf-protection=full", CGO_LDFLAGS: "-Wl,-z,shstk -Wl,-z,ibt -Wl,-z,cet-report=error", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_linux.go", runner: "ubuntu-latest"}
-          - {GOOS: "linux", GOARCH: "arm64", TARGET: "linux-arm64-static", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_linux.go", runner: "ubuntu-latest"}
-          - {GOOS: "windows", GOARCH: "amd64", TARGET: "windows-amd64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_windows.go", runner: "ubuntu-latest"}
-          - {GOOS: "windows", GOARCH: "arm64", TARGET: "windows-arm64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_windows.go", runner: "ubuntu-latest"}
-          - {GOOS: "darwin", GOARCH: "amd64", TARGET: "darwin-amd64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_darwin.go", runner: "ubuntu-latest"}
-          - {GOOS: "darwin", GOARCH: "arm64", TARGET: "darwin-arm64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_darwin.go", runner: "ubuntu-latest"}
+            CGO_CFLAGS: "-fcf-protection=full", CGO_LDFLAGS: "-Wl,-z,shstk -Wl,-z,ibt -Wl,-z,cet-report=error", LD_FLAGS_TARGET: "", runner: "ubuntu-latest"}
+          - {GOOS: "linux", GOARCH: "arm64", TARGET: "linux-arm64-static", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", runner: "ubuntu-latest"}
+          - {GOOS: "windows", GOARCH: "amd64", TARGET: "windows-amd64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", runner: "ubuntu-latest"}
+          - {GOOS: "windows", GOARCH: "arm64", TARGET: "windows-arm64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", runner: "ubuntu-latest"}
+          - {GOOS: "darwin", GOARCH: "amd64", TARGET: "darwin-amd64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", runner: "ubuntu-latest"}
+          - {GOOS: "darwin", GOARCH: "arm64", TARGET: "darwin-arm64", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", runner: "ubuntu-latest"}
     env:
       SOURCE_NAME: "${{ inputs.repository }}"
     runs-on: "${{ matrix.runner }}"
@@ -87,12 +92,12 @@ jobs:
           GOARCH: "${{ matrix.GOARCH }}"
           LD_FLAGS_VARIABLE_INJECTABLES: "${{ steps.prepare-ld-flags-injectables.outputs.ld_flags_variable_injectables }}"
           LD_FLAGS_TARGET: "${{ matrix.LD_FLAGS_TARGET }}"
-          MAIN_PATH: "${{ matrix.MAIN_PATH }}"
           CGO_ENABLED: "${{ matrix.CGO_ENABLED }}"
           CGO_CFLAGS: "${{ matrix.CGO_CFLAGS }}"
           CGO_LDFLAGS: "${{ matrix.CGO_LDFLAGS }}"
           DIR: "${{ steps.prepare.outputs.dir }}"
           BINARY_NAME: ${{ inputs.binary_name }}
+          PATHNAME_PACKAGE: ${{ inputs.pathname_package }}
         run: |
           binary_name="${BINARY_NAME}"
           if [[ "$GOOS" == "windows" ]]; then
@@ -105,7 +110,7 @@ jobs:
             -trimpath \
             -ldflags "${LD_FLAGS_VARIABLE_INJECTABLES} ${LD_FLAGS_TARGET}" \
             -o "${DIR}/${binary_name}" \
-            "${MAIN_PATH}"
+            "${PATHNAME_PACKAGE}"
 
       - name: "Copy license into package dir"
         shell: "bash"

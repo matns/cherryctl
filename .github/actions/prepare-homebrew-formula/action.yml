@@ -111,7 +111,6 @@ runs:
 
         TAG="$RELEASE_TAG"
 
-
         checksum() {
           awk -v file="$1" '
             $2 == file { print $1; found=1; exit }

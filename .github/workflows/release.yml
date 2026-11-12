@@ -76,6 +76,7 @@ jobs:
       attestations: "write"
     uses: "$/.github/workflows/release-compile-packages.yml"
     with:
+      pathname_package: "."
       repository: "${{ github.repository }}"
       ref: "${{ github.sha }}"
       binary_name: "cherryctl"
