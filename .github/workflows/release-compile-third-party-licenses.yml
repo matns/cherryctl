@@ -1,7 +1,5 @@
-
 ---
 name: "Compile: Third Party Licenses"
-
 on:
   workflow_call:
     inputs:
@@ -9,14 +7,30 @@ on:
         type: "string"
         required: true
         description: "Immutable hash of the reference"
-    outputs:
-      artifact_id_third_party_licenses:
-        description: "Artifact ID for Third Party Licenses"
-        value: "${{ jobs.compile-third-party-licenses.outputs.artifact_id_third_party_licenses }}"
-      filename_third_party_licenses:
-        description: "Filename of Third Party Licenses"
-        value: "${{ jobs.compile-third-party-licenses.outputs.filename_third_party_licenses }}"
-
+      target:
+        type: "string"
+        required: true
+        description: "Unique release target, e.g. linux-amd64-static"
+      goos:
+        type: "string"
+        required: true
+        description: "Go target operating system"
+      goarch:
+        type: "string"
+        required: true
+        description: "Go target architecture"
+      cgo_enabled:
+        type: "string"
+        required: true
+        description: "Go CGO_ENABLED setting (0 or 1)"
+      cgo_cflags:
+        type: "string"
+        required: false
+        default: ""
+      cgo_ldflags:
+        type: "string"
+        required: false
+        default: ""
 permissions: {}
 
 jobs:
@@ -26,9 +40,6 @@ jobs:
     runs-on: "ubuntu-latest"
     permissions:
       contents: "read"
-    outputs:
-      filename_third_party_licenses: "${{ steps.prepare.outputs.filename_third_party_licenses }}"
-      artifact_id_third_party_licenses: "${{ steps.upload.outputs.artifact-id }}"
     steps:
       - name: "Prepare"
         id: "prepare"
@@ -38,7 +49,6 @@ jobs:
           FILE_NAME="THIRD_PARTY_LICENSES.txt"
           echo "dir=$DIR" >> "$GITHUB_OUTPUT"
           echo "filename_third_party_licenses=$FILE_NAME" >> "$GITHUB_OUTPUT"
-
           mkdir -p "$GITHUB_WORKSPACE/checkouts"
           PATHNAME_TARGET_REPO_CHECKOUT="$(mktemp -d "$GITHUB_WORKSPACE/checkouts/XXXXXXXXXX")"
           echo "pathname_target_repo_checkout=${PATHNAME_TARGET_REPO_CHECKOUT}" >> "$GITHUB_OUTPUT"
@@ -76,8 +86,8 @@ jobs:
       - name: "Set up Go"
         uses: "actions/setup-go@v7.0.0"
         with:
-          go-version: "stable"
-
+          go-version-file: "${{ steps.prepare.outputs.pathname_target_repo_checkout }}/go.mod"
+          cache: false
       - name: "Set up google/go-licenses" # v2.0.1
         shell: "bash"
         run: |
@@ -91,19 +101,23 @@ jobs:
           DIR: "${{ steps.prepare.outputs.dir }}"
           FILE_NAME: "${{ steps.prepare.outputs.filename_third_party_licenses }}"
           PATHNAME_TARGET_REPO_CHECKOUT: "${{ steps.prepare.outputs.pathname_target_repo_checkout }}"
+          GOOS: "${{ inputs.goos }}"
+          GOARCH: "${{ inputs.goarch }}"
+          CGO_ENABLED: "${{ inputs.cgo_enabled }}"
+          CGO_CFLAGS: "${{ inputs.cgo_cflags }}"
+          CGO_LDFLAGS: "${{ inputs.cgo_ldflags }}"
         # Generate the third party licenses file. Make go-licenses ignore the module itself, since license of module goes into separate file
         run: |
+          set -euo pipefail
           "$(go env GOPATH)/bin/go-licenses" report "." \
             --ignore="$(go list -m)" \
             --template="${PATHNAME_TARGET_REPO_CHECKOUT}/licenses.tpl" \
             > "$DIR/$FILE_NAME"
-
           test -s "$DIR/$FILE_NAME"
 
       - name: "Upload"
-        id: "upload"
         uses: "actions/upload-artifact@v7.0.2"
         with:
-          name: "third_party_licenses-${{ inputs.ref }}"
+          name: "third_party_licenses-${{ inputs.ref }}-${{ inputs.target }}"
           path: "${{ steps.prepare.outputs.dir }}/${{ steps.prepare.outputs.filename_third_party_licenses }}"
           if-no-files-found: "error"

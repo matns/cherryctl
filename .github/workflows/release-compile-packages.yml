@@ -23,19 +23,16 @@ on:
         type: "string"
         description: "List of ld flags variable injectables"
         default: "[]"
-      artifact_id_third_party_licenses:
-        type: "string"
-        required: true
-
 permissions: {}
 jobs:
   build-binaries:
     name: "build-binaries"
+    needs: "compile-third-party-licenses"
     permissions:
       contents: "read"
     strategy:
       fail-fast: true
-      matrix:
+      matrix: &release_targets
         include:
           - {GOOS: "linux", GOARCH: "amd64", TARGET: "linux-amd64-static", CGO_ENABLED: "0", LD_FLAGS_TARGET: "", MAIN_PATH: "./main_linux.go", runner: "ubuntu-latest"}
           - {GOOS: "linux", GOARCH: "amd64", TARGET: "linux-amd64-gnu", CGO_ENABLED: "1",
@@ -53,6 +50,8 @@ jobs:
       - name: "Checkout"
         uses: "actions/checkout@v7.0.1"
         with:
+          repository: "${{ inputs.repository }}"
+          ref: "${{ inputs.ref }}"
           fetch-depth: 0
           persist-credentials: false
 
@@ -114,23 +113,18 @@ jobs:
         run: |
           cp "${GITHUB_WORKSPACE}/${FILENAME_LICENSE}" "$DIR/${FILENAME_LICENSE}"
 
-      - name: "Validate release third party licenses"
-        shell: bash
-        env:
-          ARTIFACT_ID: "${{ inputs.artifact_id_third_party_licenses }}"
-        run: |-
-          if [[ -z "$ARTIFACT_ID" ]]; then
-            echo "::error::Third party licenses artifact ID is missing"
-            exit 1
-          fi
-
-      - name: "Fetch worklow third party licenses and copy into package dir"
+      - name: "Fetch target-specific third party licenses"
         uses: "actions/download-artifact@v8.0.2"
         with:
-          # pattern: "third_party_licenses-${{ github.ref_name }}"
-          artifact-ids: "${{ inputs.artifact_id_third_party_licenses }}"
+          name: "third_party_licenses-${{ inputs.ref }}-${{ matrix.TARGET }}"
           path: "${{ steps.prepare.outputs.dir }}"
 
+      - name: "Verify target-specific third party licenses"
+        shell: "bash"
+        env:
+          DIR: "${{ steps.prepare.outputs.dir }}"
+        run: |
+          test -s "${DIR}/THIRD_PARTY_LICENSES.txt"
       - name: "Generate checksums of package contents"
         shell: "bash"
         working-directory: "${{ steps.prepare.outputs.dir }}"
@@ -163,3 +157,20 @@ jobs:
           path: "${{ steps.archive.outputs.archive_path }}"
           if-no-files-found: "error"
           compression-level: 0
+
+  compile-third-party-licenses:
+    name: "third-party-licenses-${{ matrix.TARGET }}"
+    permissions:
+      contents: "read"
+    strategy:
+      fail-fast: true
+      matrix: *release_targets
+    uses: "$/.github/workflows/release-compile-third-party-licenses.yml"
+    with:
+      ref: "${{ inputs.ref }}"
+      target: "${{ matrix.TARGET }}"
+      goos: "${{ matrix.GOOS }}"
+      goarch: "${{ matrix.GOARCH }}"
+      cgo_enabled: "${{ matrix.CGO_ENABLED }}"
+      cgo_cflags: "${{ matrix.CGO_CFLAGS }}"
+      cgo_ldflags: "${{ matrix.CGO_LDFLAGS }}"

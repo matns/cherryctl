@@ -34,7 +34,6 @@ jobs:
           ref: "${{ github.sha }}"
           fetch-depth: 0
           persist-credentials: false
-
       - name: "Find Go module"
         id: "find-go-module"
         shell: "bash"
@@ -49,21 +48,6 @@ jobs:
           fi
 
           echo "go_module=$go_module" >> "$GITHUB_OUTPUT"
-
-  compile-third-party-licenses:
-    name: "compile-third-party-licenses"
-    if: >-
-      ${{
-        github.event_name == 'push' &&
-        github.ref_type == 'tag' &&
-        github.ref_protected == true
-      }}
-    permissions:
-      contents: "read"
-    uses: "$/.github/workflows/release-compile-third-party-licenses.yml"
-    with:
-      ref: "${{ github.sha }}"
-
   compile-release-notes:
     name: "compile-release-notes"
     if: >-
@@ -84,7 +68,7 @@ jobs:
         github.ref_type == 'tag' &&
         github.ref_protected == true
       }}
-    needs: ["fact-finding", "compile-third-party-licenses"]
+    needs: ["fact-finding"]
     permissions:
       contents: "read"
     uses: "$/.github/workflows/release-compile-packages.yml"
@@ -97,8 +81,6 @@ jobs:
         [
           "-X ${{ needs.fact-finding.outputs.finding_go_module }}/cmd.Version=${{ github.ref_name }}"
         ]
-      artifact_id_third_party_licenses: "${{ needs.compile-third-party-licenses.outputs.artifact_id_third_party_licenses }}"
-
   generate-source-sboms:
     name: "generate-source-sboms"
     if: >-
