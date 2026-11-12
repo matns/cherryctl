@@ -30,6 +30,8 @@ jobs:
     needs: "compile-third-party-licenses"
     permissions:
       contents: "read"
+      id-token: "write"
+      attestations: "write"
     strategy:
       fail-fast: true
       matrix: &release_targets
@@ -149,6 +151,13 @@ jobs:
           fi
 
           echo "archive_path=$ARCHIVE_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: "Generate build provenance attestation"
+        id: "attest"
+        uses: "actions/attest@v4.2.2"
+        with:
+          subject-path: "${{ steps.archive.outputs.archive_path }}"
+          show-summary: true
 
       - name: "Upload workflow artifacts"
         uses: "actions/upload-artifact@v7.0.2"

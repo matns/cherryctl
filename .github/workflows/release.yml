@@ -34,6 +34,7 @@ jobs:
           ref: "${{ github.sha }}"
           fetch-depth: 0
           persist-credentials: false
+
       - name: "Find Go module"
         id: "find-go-module"
         shell: "bash"
@@ -71,6 +72,8 @@ jobs:
     needs: ["fact-finding"]
     permissions:
       contents: "read"
+      id-token: "write"
+      attestations: "write"
     uses: "$/.github/workflows/release-compile-packages.yml"
     with:
       repository: "${{ github.repository }}"
@@ -110,8 +113,7 @@ jobs:
     permissions:
       contents: "write" # So that we can create GH releases
       id-token: "write" # So that we can obtain a GHA OIDC token to submit to Sigstore as to obtain a certificate for blob signing
-      attestations: "write" # So that we can write attestations after generating GitHub-native build provenance
-      artifact-metadata: "write" # So that we can write attestations after generating GitHub-native build provenance
+      attestations: "read" # So that we can read attestations after generating GitHub-native build provenance
     outputs:
       release_asset_id_checksums_file: "${{ steps.output-checksums-asset-id.outputs.release_asset_id_checksums_file }}"
     env:
@@ -225,13 +227,6 @@ jobs:
 
           sha256sum -- * > "$PATHNAME_CHECKSUMS"
           sha256sum --check --strict "$PATHNAME_CHECKSUMS"
-
-      - name: "Generate build provenance attestation"
-        id: "attest"
-        uses: "actions/attest@v4.1.0"
-        with:
-          subject-checksums: "${{ steps.prepare.outputs.pathname_checksums }}"
-          show-summary: true
 
       - name: "Set up Cosign"
         uses: "sigstore/cosign-installer@v4.1.2"
